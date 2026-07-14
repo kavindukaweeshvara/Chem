@@ -1,0 +1,91 @@
+<%- include('../layouts/main') %>
+
+<div class="bc-custom-lesson-container">
+    <!-- Lesson Header -->
+    <div class="bc-lesson-header">
+        <h1 class="bc-lesson-title"><%= lesson.title %></h1>
+        <div class="bc-lesson-topic-name">
+            📚 <%= lesson.topicName || 'Advanced Level Chemistry' %>
+        </div>
+    </div>
+
+    <!-- Lesson Actions - Card Design -->
+    <div class="bc-lesson-actions">
+        
+        <!-- Live Session Box -->
+        <div class="bc-action-box live-session-box">
+            <% if (lesson.zoomLink) { %>
+                <a href="<%= lesson.zoomLink %>" target="_blank" class="bc-box-link">
+                    <span class="box-icon">📡</span>
+                    <span class="box-title">Live Session</span>
+                    <span class="box-desc">Join Zoom Meeting</span>
+                    <span class="box-badge">🔴 LIVE</span>
+                </a>
+            <% } else { %>
+                <div class="bc-box-link inactive">
+                    <span class="box-icon">📡</span>
+                    <span class="box-title">Live Session</span>
+                    <span class="box-desc">No live session scheduled</span>
+                    <span class="box-badge">⏸️ Offline</span>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Watch Recordings Box -->
+        <div class="bc-action-box recording-box">
+            <div class="bc-box-link" id="show-recording-btn" onclick="toggleRecording()">
+                <span class="box-icon">🎬</span>
+                <span class="box-title">Watch Recordings</span>
+                <span class="box-desc">Access Secured Video</span>
+                <span class="box-badge">🔒 DRM Protected</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Player Section -->
+    <div id="bc-secured-video-container" style="display: none;">
+        <div class="video-security-notice">
+            <span class="security-icon">🛡️</span>
+            <span>This video is protected with dynamic watermarking. Recording is prohibited.</span>
+        </div>
+        
+        <div id="vdocipher-container" 
+             data-otp="<%= videoData.otp %>"
+             data-playback-info="<%= videoData.playbackInfo %>"
+             data-lesson-id="<%= lesson.id %>"
+             data-student-name="<%= user.fullName %>"
+             data-student-id="<%= user.studentId %>"
+             data-mobile="<%= user.mobileNumber %>">
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleRecording() {
+    const container = document.getElementById('bc-secured-video-container');
+    const btn = document.getElementById('show-recording-btn');
+    
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        container.scrollIntoView({ behavior: 'smooth' });
+        
+        // Load video player if not loaded
+        if (typeof SecureVideoPlayer !== 'undefined') {
+            const videoData = {
+                otp: '<%= videoData.otp %>',
+                playbackInfo: '<%= videoData.playbackInfo %>',
+                lessonId: '<%= lesson.id %>',
+                studentName: '<%= user.fullName %>',
+                studentId: '<%= user.studentId %>',
+                mobile: '<%= user.mobileNumber %>'
+            };
+            const player = new SecureVideoPlayer('vdocipher-container', videoData);
+            player.initialize();
+        }
+    } else {
+        container.style.display = 'none';
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>
