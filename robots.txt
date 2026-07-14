@@ -1,0 +1,36 @@
+# Block AI Crawlers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /admin/
+Disallow: /student/
+Disallow: /courses/
+Disallow: /api/
+
+# General Rules
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Allow: /
+
+# Sitemap
+Sitemap: https://your-domain.railway.app/sitemap.xml
