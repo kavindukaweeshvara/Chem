@@ -15,46 +15,26 @@ async function createAdmin() {
         await sequelize.authenticate();
         console.log('✅ Database connected');
 
-        // Check existing admin
         const [existing] = await sequelize.query(
             `SELECT * FROM users WHERE username = 'Buddika'`
         );
 
         if (existing.length > 0) {
             console.log('⚠️ Admin already exists');
-            console.log('   Username: Buddika');
-            console.log('   Password: Buddika@2024');
             process.exit(0);
         }
 
-        // Hash password
         const hashedPassword = await bcrypt.hash('Buddika@2024', 12);
 
-        // Create admin
         await sequelize.query(
             `INSERT INTO users (student_id, username, email, password, full_name, mobile_number, role, is_active) 
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
             {
-                bind: [
-                    'BC-ADMIN-001',
-                    'Buddika',
-                    'buddika@chemistry.lk',
-                    hashedPassword,
-                    'Buddika Wijesundara',
-                    '94771234567',
-                    'admin',
-                    true
-                ]
+                bind: ['BC-ADMIN-001', 'Buddika', 'buddika@chemistry.lk', hashedPassword, 'Buddika Wijesundara', '94771234567', 'admin', true]
             }
         );
 
-        console.log('✅ Admin created!');
-        console.log('━━━━━━━━━━━━━━━━━━');
-        console.log('   Username: Buddika');
-        console.log('   Password: Buddika@2024');
-        console.log('   Name: Buddika Wijesundara');
-        console.log('━━━━━━━━━━━━━━━━━━');
-        
+        console.log('✅ Admin Created: Buddika / Buddika@2024');
         process.exit(0);
     } catch (error) {
         console.error('❌ Error:', error.message);
