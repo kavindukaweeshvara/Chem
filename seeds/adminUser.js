@@ -1,49 +1,65 @@
 require('dotenv').config();
-const User = require('../models/User');
-const { sequelize } = require('../config/database');
+const { Sequelize } = require('sequelize');
+const bcrypt = require('bcryptjs');
 
-async function createAdminUser() {
+async function createAdmin() {
     try {
+        const sequelize = new Sequelize(process.env.DATABASE_URL, {
+            dialect: 'postgres',
+            logging: false,
+            dialectOptions: {
+                ssl: { require: true, rejectUnauthorized: false }
+            }
+        });
+
         await sequelize.authenticate();
         console.log('✅ Database connected');
 
-        const adminData = {
-            studentId: 'BC-ADMIN-001',
-            username: process.env.ADMIN_USERNAME || 'buddika_w',
-            email: 'kaweeshvarak@gmail.com',
-            password: process.env.ADMIN_PASSWORD || 'Buddika@2024',
-            fullName: process.env.ADMIN_DISPLAY_NAME || 'Buddika Wijesundara',
-            mobileNumber: process.env.WHATSAPP_NUMBER || '94740231163',
-            role: 'admin',
-            isActive: true
-        };
+        // Check existing admin
+        const [existing] = await sequelize.query(
+            `SELECT * FROM users WHERE username = 'Buddika'`
+        );
 
-        // Check if admin exists
-        const existingAdmin = await User.findOne({ 
-            where: { username: adminData.username } 
-        });
-
-        if (existingAdmin) {
-            console.log('⚠️ Admin user already exists');
-            console.log(`   Username: ${adminData.username}`);
+        if (existing.length > 0) {
+            console.log('⚠️ Admin already exists');
+            console.log('   Username: Buddika');
+            console.log('   Password: Buddika@2024');
             process.exit(0);
         }
 
+        // Hash password
+        const hashedPassword = await bcrypt.hash('Buddika@2024', 12);
+
         // Create admin
-        const admin = await User.create(adminData);
-        console.log('✅ Admin user created successfully!');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log(`   Username: ${adminData.username}`);
-        console.log(`   Password: ${process.env.ADMIN_PASSWORD || 'Buddhika@2024'}`);
-        console.log(`   Role: ${admin.role}`);
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('⚠️ Please change the password after first login!');
+        await sequelize.query(
+            `INSERT INTO users (student_id, username, email, password, full_name, mobile_number, role, is_active) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            {
+                bind: [
+                    'BC-ADMIN-001',
+                    'Buddika',
+                    'buddika@chemistry.lk',
+                    hashedPassword,
+                    'Buddika Wijesundara',
+                    '94771234567',
+                    'admin',
+                    true
+                ]
+            }
+        );
+
+        console.log('✅ Admin created!');
+        console.log('━━━━━━━━━━━━━━━━━━');
+        console.log('   Username: Buddika');
+        console.log('   Password: Buddika@2024');
+        console.log('   Name: Buddika Wijesundara');
+        console.log('━━━━━━━━━━━━━━━━━━');
         
         process.exit(0);
     } catch (error) {
-        console.error('❌ Error creating admin:', error);
+        console.error('❌ Error:', error.message);
         process.exit(1);
     }
 }
 
-createAdminUser();
+createAdmin();
