@@ -14,7 +14,6 @@ async function runMigrations() {
         await sequelize.authenticate();
         console.log('✅ Database connected');
 
-        // Create Tables
         await sequelize.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -29,54 +28,15 @@ async function runMigrations() {
                 role VARCHAR(20) DEFAULT 'student',
                 is_active BOOLEAN DEFAULT true,
                 last_login_at TIMESTAMP,
-                last_activity_at TIMESTAMP,
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS courses (
-                id SERIAL PRIMARY KEY,
-                title VARCHAR(255) NOT NULL,
-                description TEXT,
-                price DECIMAL(10,2) DEFAULT 0,
-                status VARCHAR(20) DEFAULT 'draft',
-                created_at TIMESTAMP DEFAULT NOW(),
-                updated_at TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS lessons (
-                id SERIAL PRIMARY KEY,
-                course_id INTEGER REFERENCES courses(id),
-                title VARCHAR(255) NOT NULL,
-                topic_name VARCHAR(255),
-                zoom_link VARCHAR(500),
-                created_at TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS enrollments (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER REFERENCES users(id),
-                course_id INTEGER REFERENCES courses(id),
-                status VARCHAR(20) DEFAULT 'pending',
-                payment_status VARCHAR(20) DEFAULT 'unpaid',
-                enrolled_at TIMESTAMP DEFAULT NOW(),
-                expires_at TIMESTAMP,
-                created_at TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS activities (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER REFERENCES users(id),
-                action VARCHAR(100) NOT NULL,
-                details TEXT,
-                created_at TIMESTAMP DEFAULT NOW()
             );
         `);
 
-        console.log('✅ All tables created');
+        console.log('✅ Users table created');
         process.exit(0);
     } catch (error) {
-        console.error('❌ Migration error:', error.message);
+        console.error('❌ Error:', error.message);
         process.exit(1);
     }
 }
