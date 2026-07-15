@@ -143,23 +143,53 @@ app.post('/forgot-password', async (req, res) => {
         const [users] = await db.query(`SELECT * FROM users WHERE email = $1`, { bind: [email] });
         
         if (users.length === 0) {
-            return res.send(`<!DOCTYPE html><html><head><title>Not Found</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center}h2{color:#dc3545;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>❌ Email Not Found!</h2><p>No account found with: <strong>${email}</strong></p><p style="font-size:13px;color:#999;">Please check your email or register first.</p><a href="/forgot-password" class="btn">🔄 Try Again</a><br><br><a href="/register" style="color:#1a237e;">📝 Register New Account</a></div></body></html>`);
+            return res.send(`<!DOCTYPE html><html><head><title>Not Found</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center}h2{color:#dc3545;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>❌ Email Not Found!</h2><p>No account found with: <strong>${email}</strong></p><a href="/forgot-password" class="btn">🔄 Try Again</a><br><br><a href="/register" style="color:#1a237e;">📝 Register</a></div></body></html>`);
         }
         
-        const user = users[0];
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         const token = crypto.randomBytes(32).toString('hex');
         const expires = new Date(Date.now() + 3600000);
         
         await db.query(`UPDATE users SET reset_token=$1, reset_token_expires=$2, verification_code=$3 WHERE email=$4`, { bind: [token, expires, code, email] });
         
-        res.send(`<!DOCTYPE html><html><head><title>Verify Email</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:430px;text-align:center}h2{color:#1a237e;margin-bottom:10px}.sub{color:#666;font-size:14px;margin-bottom:20px}.code-box{background:#f0f0f0;padding:20px;border-radius:10px;margin:20px 0;font-size:32px;font-weight:bold;color:#1a237e;letter-spacing:5px}.info{background:#e3f2fd;color:#1565c0;padding:12px;border-radius:8px;font-size:13px;margin:15px 0}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:18px;text-align:center;letter-spacing:5px}input:focus{border-color:#1a237e;outline:none}button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#218838}.link{margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.email-info{color:#1a237e;font-weight:bold;font-size:16px;margin:10px 0}.note{background:#fff3cd;color:#856404;padding:10px;border-radius:5px;font-size:12px;margin:10px 0}</style></head><body><div class="box"><h2>📧 Verify Your Email</h2><p class="sub">Verification code sent to:</p><p class="email-info">${email}</p><div class="code-box">${code}</div><div class="info">📋 <strong>Verification Code:</strong> ${code}<br>⚠️ This code expires in 1 hour</div><form action="/verify-code" method="POST"><input type="hidden" name="token" value="${token}"><input type="hidden" name="email" value="${email}"><input type="text" name="code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" required><button type="submit">✅ Verify & Reset Password</button></form><div class="note">💡 Real system would send this code via email. For now, the code is shown above.</div><div class="link"><a href="/forgot-password">← Try Different Email</a></div></div></body></html>`);
+        // Send Email
+        try {
+            const nodemailer = require('nodemailer');
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER || 'your-email@gmail.com',
+                    pass: process.env.EMAIL_PASS || 'your-password'
+                }
+            });
+            
+            await transporter.sendMail({
+                from: `"Buddika Wijesundara LMS" <${process.env.EMAIL_USER}>`,
+                to: email,
+                subject: 'Password Reset Verification Code',
+                html: `
+                    <div style="max-width:500px;margin:0 auto;padding:30px;font-family:Arial,sans-serif;background:#f5f5f5;border-radius:10px">
+                        <h2 style="color:#1a237e;text-align:center">🔑 Password Reset</h2>
+                        <p style="color:#666;text-align:center">Your verification code:</p>
+                        <div style="background:#1a237e;color:white;padding:20px;border-radius:10px;text-align:center;font-size:32px;font-weight:bold;letter-spacing:8px;margin:20px 0">${code}</div>
+                        <p style="color:#666;text-align:center;font-size:13px">This code expires in 1 hour.</p>
+                        <p style="color:#999;text-align:center;font-size:12px;margin-top:20px">If you didn't request this, ignore this email.</p>
+                        <hr style="border:1px solid #e0e0e0;margin:20px 0">
+                        <p style="text-align:center;color:#1a237e;font-weight:bold">👨‍🏫 Buddika Wijesundara<br>Advanced Level Chemistry</p>
+                    </div>
+                `
+            });
+            console.log('✅ Email sent to:', email);
+        } catch(emailErr) {
+            console.error('Email send error:', emailErr.message);
+        }
+        
+        res.send(`<!DOCTYPE html><html><head><title>Verify Email</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:430px;text-align:center}h2{color:#1a237e;margin-bottom:10px}.sub{color:#666;font-size:14px;margin-bottom:20px}.info{background:#e3f2fd;color:#1565c0;padding:12px;border-radius:8px;font-size:13px;margin:15px 0}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:18px;text-align:center;letter-spacing:5px}input:focus{border-color:#1a237e;outline:none}button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#218838}.link{margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.email-info{color:#1a237e;font-weight:bold;font-size:16px;margin:10px 0}</style></head><body><div class="box"><h2>📧 Check Your Email</h2><p class="sub">Verification code sent to:</p><p class="email-info">${email}</p><div class="info">📋 Enter the 6-digit code from your email.<br>⚠️ Code expires in 1 hour.</div><form action="/verify-code" method="POST"><input type="hidden" name="token" value="${token}"><input type="hidden" name="email" value="${email}"><input type="text" name="code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" required><button type="submit">✅ Verify & Reset Password</button></form><div class="link"><a href="/forgot-password">← Try Different Email</a></div></div></body></html>`);
         
     } catch (e) {
         res.send(`<script>alert('Error: ${e.message}');window.location.href='/forgot-password'</script>`);
     }
 });
-
 // ============================================
 // VERIFY CODE - POST
 // ============================================
