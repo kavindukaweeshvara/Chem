@@ -1,0 +1,39 @@
+// ============================================
+// STUDENT - VIEW LESSONS (Payment Check)
+// ============================================
+app.get('/student/courses/:courseId/lessons', studentAuth, async (req, res) => {
+    const courseId = req.params.courseId;
+    const userId = req.session.userId;
+    let course = { title: 'Course' };
+    let lessons = [];
+    let hasAccess = false;
+    
+    if (dbConnected) {
+        try {
+            const [c] = await db.query(`SELECT * FROM courses WHERE id=$1`, { bind: [courseId] });
+            if (c.length > 0) course = c[0];
+            
+            // Check payment status
+            const [enrollment] = await db.query(`SELECT * FROM enrollments WHERE user_id=$1 AND course_id=$2 AND status='active' AND payment_status='verified'`, { bind: [userId, courseId] });
+            hasAccess = enrollment.length > 0;
+            
+            if (hasAccess) {
+                const [l] = await db.query(`SELECT * FROM lessons WHERE course_id=$1 ORDER BY order_number`, { bind: [courseId] });
+                lessons = l;
+            }
+        } catch(e) {}
+    }
+    
+    if (!hasAccess) {
+        return res.send(`<!DOCTYPE html><html><head><title>Access Denied</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#dc3545,#c82333);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.card{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:500px;width:100%;text-align:center}.icon{font-size:70px;margin-bottom:20px}h2{color:#dc3545;margin-bottom:10px}p{color:#666;line-height:1.8;margin:15px 0}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px}.btn-wa{background:#25D366}</style></head><body><div class="card"><div class="icon">🔒</div><h2>Payment Required!</h2><p>ඔබ තවමත් Payment කර නැත!<br>You have not made the payment yet.</p><p style="font-size:14px;color:#dc3545;"><strong>⚠️ Payment කළ පසුව පමණක් Videos සහ Live Sessions Access කළ හැක.</strong></p><a href="/student/payment" class="btn">💰 Payment Details</a><a href="/student/courses" class="btn">← Back to Courses</a></div></body></html>`);
+    }
+    
+    let lessonCards = '';
+    if (lessons.length > 0) {
+        lessons.forEach(l => {
+            lessonCards += `<div class="lesson-card"><h3>📖 ${l.title}</h3><p class="topic-name">📚 ${l.topic_name || 'Advanced Level Chemistry'}</p><div class="actions">${l.zoom_link ? `<a href="${l.zoom_link}" target="_blank" class="action-box live-box"><span class="icon">📡</span><span class="label">Live Session</span><span class="desc">Join Zoom Meeting</span></a>` : `<div class="action-box live-box inactive"><span class="icon">📡</span><span class="label">Live Session</span><span class="desc">Not Available</span></div>`}${l.video_url ? `<a href="${l.video_url}" target="_blank" class="action-box recording-box"><span class="icon">🎬</span><span class="label">Watch Recording</span><span class="desc">Secured Video</span></a>` : `<div class="action-box recording-box inactive"><span class="icon">🎬</span><span class="label">Watch Recording</span><span class="desc">Not Available</span></div>`}</div></div>`;
+        });
+    } else { lessonCards = '<p style="text-align:center;color:#666;padding:30px;">No lessons available yet.</p>'; }
+    
+    res.send(`<!DOCTYPE html><html><head><title>${course.title} - Lessons</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#28a745,#218838);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.badge{background:rgba(255,255,255,0.2);padding:5px 15px;border-radius:20px;font-size:13px}.back{color:white;text-decoration:none;font-size:14px}.container{max-width:800px;margin:25px auto;padding:0 20px}h2{color:#1a237e;margin-bottom:5px}.topic{color:#666;margin-bottom:25px}.lesson-card{background:white;padding:25px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,0.08);margin-bottom:20px}.lesson-card h3{color:#1a237e;margin-bottom:5px}.topic-name{color:#2563eb;font-weight:bold;font-size:14px;margin-bottom:20px;background:#eff6ff;padding:8px 15px;border-radius:20px;display:inline-block}.actions{display:flex;gap:20px;flex-wrap:wrap}.action-box{flex:1;min-width:200px;padding:25px 20px;border-radius:12px;text-align:center;text-decoration:none;color:white;transition:0.3s;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}.action-box:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.15)}.live-box{background:linear-gradient(135deg,#dc3545,#c82333)}.recording-box{background:linear-gradient(135deg,#1a237e,#283593)}.inactive{opacity:0.5;cursor:not-allowed;pointer-events:none}.icon{font-size:40px}.label{font-size:18px;font-weight:bold}.desc{font-size:13px;opacity:0.9}</style></head><body><div class="header"><h1>📚 ${course.title}</h1><div><span class="badge">✅ Paid & Active</span><a href="/student/courses" class="back" style="margin-left:15px;">← Courses</a></div></div><div class="container"><h2>Lessons</h2><p class="topic">👨‍🏫 Buddika Wijesundara | Chemistry</p>${lessonCards}</div></body></html>`);
+});
