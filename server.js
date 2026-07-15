@@ -253,6 +253,182 @@ app.get('/admin/analytics', adminAuth, async (req, res) => {
     
     res.send(`<!DOCTYPE html><html><head><title>Analytics - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.back{color:white;text-decoration:none;font-size:14px}.container{max-width:900px;margin:25px auto;padding:0 20px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin-bottom:25px}.card{background:white;padding:30px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);text-align:center}.card .icon{font-size:40px;margin-bottom:10px}.card .num{font-size:42px;font-weight:bold;color:#1a237e;margin:10px 0}.card .label{color:#666;font-size:14px}.card.green{border-top:4px solid #28a745}.card.blue{border-top:4px solid #1a237e}.card.red{border-top:4px solid #dc3545}.info-box{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08)}h2{color:#1a237e;margin-bottom:15px}p{color:#666;line-height:1.8}</style></head><body><div class="header"><h1>📊 Analytics</h1><a href="/admin/dashboard" class="back">← Dashboard</a></div><div class="container"><div class="cards"><div class="card blue"><div class="icon">👥</div><div class="num">${totalStudents}</div><div class="label">Total Students</div></div><div class="card green"><div class="icon">✅</div><div class="num">${activeToday}</div><div class="label">Active Today</div></div><div class="card red"><div class="icon">🚨</div><div class="num">${inactiveWeek}</div><div class="label">Inactive (7+ Days)</div></div></div><div class="info-box"><h2>📹 Video Analytics</h2><p>Video watch tracking available after VdoCipher integration.</p><p style="margin-top:15px;color:#1a237e"><strong>👨‍🏫 Teacher:</strong> Buddika Wijesundara</p><p><strong>📚 Subject:</strong> Advanced Level Chemistry</p></div></div></body></html>`);
 });
+// ============================================
+// ADMIN - COURSES PAGE
+// ============================================
+app.get('/admin/courses', adminAuth, async (req, res) => {
+    let courses = [];
+    if (dbConnected) {
+        try {
+            const [rows] = await db.query(`SELECT * FROM courses ORDER BY created_at DESC`);
+            courses = rows;
+        } catch(e) {}
+    }
+    
+    let courseCards = '';
+    if (courses.length > 0) {
+        courses.forEach(c => {
+            courseCards += `
+                <div class="course-card">
+                    <h3>📚 ${c.title}</h3>
+                    <p style="color:#666;margin:8px 0;">${c.description || 'No description'}</p>
+                    <p style="font-size:13px;color:#999;">Price: Rs.${c.price || 0} | Status: ${c.status}</p>
+                    <div style="margin-top:15px;">
+                        <a href="/admin/courses/${c.id}/lessons" class="btn-small">📖 Lessons</a>
+                        <a href="/admin/courses/edit/${c.id}" class="btn-small btn-warning">✏️ Edit</a>
+                        <a href="/admin/courses/delete/${c.id}" class="btn-small btn-danger" onclick="return confirm('Delete?')">🗑️ Delete</a>
+                    </div>
+                </div>`;
+        });
+    } else {
+        courseCards = '<p style="color:#666;text-align:center;padding:30px;">No courses yet. Create your first course!</p>';
+    }
+    
+    res.send(`<!DOCTYPE html><html><head><title>Courses - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.back{color:white;text-decoration:none;font-size:14px}.container{max-width:1000px;margin:25px auto;padding:0 20px}.card{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:20px}h2{color:#1a237e;margin-bottom:20px}form{margin-bottom:25px}input,textarea,select{width:100%;padding:12px;margin:8px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:14px}button{padding:12px 25px;background:#28a745;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#218838}.course-card{background:white;padding:20px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:15px}.course-card h3{color:#1a237e;margin-bottom:5px}.btn-small{padding:8px 16px;border-radius:5px;text-decoration:none;font-size:13px;font-weight:bold;display:inline-block;margin:3px}.btn-small{background:#1a237e;color:white}.btn-warning{background:#ffc107;color:#333}.btn-danger{background:#dc3545;color:white}.btn-info{background:#17a2b8;color:white}</style></head><body><div class="header"><h1>📚 Course Management</h1><a href="/admin/dashboard" class="back">← Dashboard</a></div><div class="container"><div class="card"><h2>➕ Create New Course</h2><form action="/admin/courses/create" method="POST"><input type="text" name="title" placeholder="Course Title (e.g., 2026 Revision Chemistry)" required><textarea name="description" placeholder="Course Description" rows="3"></textarea><input type="number" name="price" placeholder="Price (Rs.)" value="0"><select name="status"><option value="published">Published</option><option value="draft">Draft</option></select><button type="submit">➕ Create Course</button></form></div><h2 style="color:#1a237e;margin:20px 0;">📖 All Courses</h2>${courseCards}</div></body></html>`);
+});
+
+// CREATE COURSE
+app.post('/admin/courses/create', adminAuth, async (req, res) => {
+    const { title, description, price, status } = req.body;
+    if (!title) return res.send(`<script>alert('Title required!');window.location.href='/admin/courses'</script>`);
+    if (dbConnected) {
+        await db.query(`INSERT INTO courses (title, description, price, status) VALUES ($1,$2,$3,$4)`, { bind: [title, description, price, status] });
+    }
+    res.redirect('/admin/courses');
+});
+
+// DELETE COURSE
+app.get('/admin/courses/delete/:id', adminAuth, async (req, res) => {
+    if (dbConnected) { await db.query(`DELETE FROM courses WHERE id=$1`, { bind: [req.params.id] }); }
+    res.redirect('/admin/courses');
+});
+
+// ============================================
+// ADMIN - LESSONS PAGE (For a Course)
+// ============================================
+app.get('/admin/courses/:courseId/lessons', adminAuth, async (req, res) => {
+    const courseId = req.params.courseId;
+    let course = { title: 'Unknown' };
+    let lessons = [];
+    
+    if (dbConnected) {
+        try {
+            const [c] = await db.query(`SELECT * FROM courses WHERE id=$1`, { bind: [courseId] });
+            if (c.length > 0) course = c[0];
+            const [l] = await db.query(`SELECT * FROM lessons WHERE course_id=$1 ORDER BY order_number`, { bind: [courseId] });
+            lessons = l;
+        } catch(e) {}
+    }
+    
+    let lessonList = '';
+    if (lessons.length > 0) {
+        lessons.forEach(l => {
+            lessonList += `
+                <div class="lesson-card">
+                    <div>
+                        <strong style="color:#1a237e;">📖 ${l.title}</strong>
+                        <span style="background:#e3f2fd;color:#1565c0;padding:3px 10px;border-radius:12px;font-size:12px;margin-left:10px;">${l.topic_name || 'No Topic'}</span>
+                        ${l.zoom_link ? '<br><small style="color:#28a745;">📡 Zoom: ' + l.zoom_link.substring(0,50) + '...</small>' : ''}
+                    </div>
+                    <div>
+                        <a href="/admin/lessons/edit/${l.id}" class="btn-small btn-warning">✏️</a>
+                        <a href="/admin/lessons/delete/${l.id}?courseId=${courseId}" class="btn-small btn-danger" onclick="return confirm('Delete?')">🗑️</a>
+                    </div>
+                </div>`;
+        });
+    } else {
+        lessonList = '<p style="color:#666;text-align:center;padding:20px;">No lessons yet. Add your first lesson!</p>';
+    }
+    
+    res.send(`<!DOCTYPE html><html><head><title>Lessons - ${course.title}</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.back{color:white;text-decoration:none;font-size:14px}.container{max-width:900px;margin:25px auto;padding:0 20px}.card{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:20px}h2{color:#1a237e;margin-bottom:20px}input,textarea{width:100%;padding:12px;margin:8px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:14px}button{padding:12px 25px;background:#28a745;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#218838}.lesson-card{background:white;padding:15px 20px;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.05);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}.btn-small{padding:8px 16px;border-radius:5px;text-decoration:none;font-size:13px;font-weight:bold;display:inline-block;margin:3px;background:#1a237e;color:white}.btn-warning{background:#ffc107;color:#333}.btn-danger{background:#dc3545;color:white}.info-box{background:#e3f2fd;color:#1565c0;padding:12px;border-radius:8px;margin-bottom:20px;font-size:13px}</style></head><body><div class="header"><h1>📖 Lessons: ${course.title}</h1><a href="/admin/courses" class="back">← Courses</a></div><div class="container"><div class="info-box">💡 Add Zoom links for Live Sessions. Add video URLs for recordings.</div><div class="card"><h2>➕ Add New Lesson</h2><form action="/admin/lessons/create" method="POST"><input type="hidden" name="courseId" value="${courseId}"><input type="text" name="title" placeholder="Lesson Title (e.g., Organic Chemistry - Day 01)" required><input type="text" name="topicName" placeholder="Topic Name (e.g., 2026 Revision Chemistry Special)"><input type="text" name="zoomLink" placeholder="Zoom Meeting Link"><input type="text" name="videoUrl" placeholder="Video URL (VdoCipher/Vimeo)"><input type="number" name="orderNumber" placeholder="Order Number (1,2,3...)" value="${lessons.length + 1}"><button type="submit">➕ Add Lesson</button></form></div><h2 style="color:#1a237e;margin:20px 0;">📚 Lesson List</h2>${lessonList}</div></body></html>`);
+});
+
+// CREATE LESSON
+app.post('/admin/lessons/create', adminAuth, async (req, res) => {
+    const { courseId, title, topicName, zoomLink, videoUrl, orderNumber } = req.body;
+    if (!title) return res.send(`<script>alert('Title required!');window.location.href='/admin/courses/${courseId}/lessons'</script>`);
+    if (dbConnected) {
+        await db.query(`INSERT INTO lessons (course_id, title, topic_name, zoom_link, order_number) VALUES ($1,$2,$3,$4,$5)`, { bind: [courseId, title, topicName, zoomLink, orderNumber || 0] });
+    }
+    res.redirect(`/admin/courses/${courseId}/lessons`);
+});
+
+// DELETE LESSON
+app.get('/admin/lessons/delete/:id', adminAuth, async (req, res) => {
+    const courseId = req.query.courseId;
+    if (dbConnected) { await db.query(`DELETE FROM lessons WHERE id=$1`, { bind: [req.params.id] }); }
+    res.redirect(`/admin/courses/${courseId}/lessons`);
+});
+
+// ============================================
+// STUDENT - VIEW COURSES & LESSONS
+// ============================================
+app.get('/student/courses', studentAuth, async (req, res) => {
+    let courses = [];
+    if (dbConnected) {
+        try {
+            const [rows] = await db.query(`SELECT * FROM courses WHERE status='published' ORDER BY created_at DESC`);
+            courses = rows;
+        } catch(e) {}
+    }
+    
+    let courseCards = '';
+    if (courses.length > 0) {
+        courses.forEach(c => {
+            courseCards += `
+                <div class="course-card">
+                    <h3>📚 ${c.title}</h3>
+                    <p style="color:#666;">${c.description || ''}</p>
+                    <p style="font-size:13px;color:#999;">Price: Rs.${c.price || 0}</p>
+                    <a href="/student/courses/${c.id}/lessons" class="btn">📖 View Lessons</a>
+                </div>`;
+        });
+    } else {
+        courseCards = '<p style="text-align:center;color:#666;padding:30px;">No courses available yet. Check back later!</p>';
+    }
+    
+    res.send(`<!DOCTYPE html><html><head><title>Courses - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.logout{background:#dc3545;color:white;padding:8px 18px;border-radius:5px;text-decoration:none;font-size:13px}.container{max-width:900px;margin:25px auto;padding:0 20px}h2{color:#1a237e;margin-bottom:20px}.course-card{background:white;padding:20px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:15px}.course-card h3{color:#1a237e;margin-bottom:8px}.btn{display:inline-block;padding:10px 22px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-size:14px;font-weight:bold;margin-top:10px}.btn:hover{background:#0d1457}</style></head><body><div class="header"><h1>👨‍🎓 ${req.session.userName}</h1><div><span style="font-size:13px;margin-right:10px;">🆔 ${req.session.studentId}</span><a href="/logout" class="logout">🚪 Logout</a></div></div><div class="container"><h2>📚 My Courses</h2>${courseCards}<div style="text-align:center;margin-top:20px;"><a href="/student/dashboard">← Dashboard</a></div></div></body></html>`);
+});
+
+// STUDENT - VIEW LESSONS (Card Design with Live + Recording)
+app.get('/student/courses/:courseId/lessons', studentAuth, async (req, res) => {
+    const courseId = req.params.courseId;
+    let course = { title: 'Course' };
+    let lessons = [];
+    
+    if (dbConnected) {
+        try {
+            const [c] = await db.query(`SELECT * FROM courses WHERE id=$1`, { bind: [courseId] });
+            if (c.length > 0) course = c[0];
+            const [l] = await db.query(`SELECT * FROM lessons WHERE course_id=$1 ORDER BY order_number`, { bind: [courseId] });
+            lessons = l;
+        } catch(e) {}
+    }
+    
+    let lessonCards = '';
+    if (lessons.length > 0) {
+        lessons.forEach(l => {
+            lessonCards += `
+                <div class="lesson-card">
+                    <h3>📖 ${l.title}</h3>
+                    <p class="topic-name">📚 ${l.topic_name || 'Advanced Level Chemistry'}</p>
+                    <div class="actions">
+                        ${l.zoom_link ? `<a href="${l.zoom_link}" target="_blank" class="action-box live-box">
+                            <span class="icon">📡</span><span class="label">Live Session</span><span class="desc">Join Zoom Meeting</span>
+                        </a>` : `<div class="action-box live-box inactive"><span class="icon">📡</span><span class="label">Live Session</span><span class="desc">Not Available</span></div>`}
+                        
+                        ${l.video_url ? `<div class="action-box recording-box" onclick="alert('Video Player Loading...')">
+                            <span class="icon">🎬</span><span class="label">Watch Recording</span><span class="desc">Secured Video</span>
+                        </div>` : `<div class="action-box recording-box inactive"><span class="icon">🎬</span><span class="label">Watch Recording</span><span class="desc">Not Available</span></div>`}
+                    </div>
+                </div>`;
+        });
+    } else {
+        lessonCards = '<p style="text-align:center;color:#666;padding:30px;">No lessons available yet.</p>';
+    }
+    
+    res.send(`<!DOCTYPE html><html><head><title>${course.title} - Lessons</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.back{color:white;text-decoration:none;font-size:14px}.container{max-width:800px;margin:25px auto;padding:0 20px}h2{color:#1a237e;margin-bottom:5px}.topic{color:#666;margin-bottom:25px}.lesson-card{background:white;padding:25px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,0.08);margin-bottom:20px}.lesson-card h3{color:#1a237e;margin-bottom:5px}.topic-name{color:#2563eb;font-weight:bold;font-size:14px;margin-bottom:20px;background:#eff6ff;padding:8px 15px;border-radius:20px;display:inline-block}.actions{display:flex;gap:20px;flex-wrap:wrap}.action-box{flex:1;min-width:200px;padding:25px 20px;border-radius:12px;text-align:center;text-decoration:none;color:white;transition:0.3s;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}.action-box:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.15)}.live-box{background:linear-gradient(135deg,#dc3545,#c82333)}.recording-box{background:linear-gradient(135deg,#1a237e,#283593)}.inactive{opacity:0.5;cursor:not-allowed;pointer-events:none}.icon{font-size:40px}.label{font-size:18px;font-weight:bold}.desc{font-size:13px;opacity:0.9}</style></head><body><div class="header"><h1>📚 ${course.title}</h1><a href="/student/courses" class="back">← Courses</a></div><div class="container"><h2>Lessons</h2><p class="topic">👨‍🏫 Buddika Wijesundara | Chemistry</p>${lessonCards}</div></body></html>`);
+});
 
 // ============================================
 // LOGOUT
