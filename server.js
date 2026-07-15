@@ -1,157 +1,389 @@
-require('dotenv').config();
+// SIMPLE WORKING SERVER - NO CRASH
 const express = require('express');
-const session = require('express-session');
-const passport = require('passport');
-const helmet = require('helmet');
-const cors = require('cors');
-const morgan = require('morgan');
-const flash = require('connect-flash');
-const path = require('path');
-const { sequelize } = require('./config/database');
-const securityMiddleware = require('./middleware/security');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ============================================
-// SECURITY MIDDLEWARE
-// ============================================
+// Static files
+app.use(express.static('public'));
 
-// Helmet for security headers
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-            imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "https://*.vdocipher.com"],
-            frameSrc: ["'self'", "https://*.vdocipher.com"],
-        },
-    },
-    crossOriginEmbedderPolicy: true,
-    crossOriginOpenerPolicy: { policy: "same-origin" },
-    crossOriginResourcePolicy: { policy: "same-origin" },
-}));
-
-// CORS
-app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-        ? 'https://buddikachemistry.lk' 
-        : 'http://localhost:3000',
-    credentials: true
-}));
-
-// Rate Limiting
-const rateLimit = require('express-rate-limit');
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per window
-    message: 'Too many requests from this IP, please try again later.'
-});
-app.use('/api/', limiter);
-
-// Body Parser
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Static Files
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Session Configuration
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-change-me',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: 'strict'
-    }
-}));
-
-// Flash Messages
-app.use(flash());
-
-// Passport
-app.use(passport.initialize());
-app.use(passport.session());
-require('./config/passport')(passport);
-
-// Logging
-if (process.env.NODE_ENV === 'production') {
-    app.use(morgan('combined'));
-} else {
-    app.use(morgan('dev'));
-}
-
-// Custom Security Middleware (AI Bot Blocking)
-app.use(securityMiddleware.blockAIBots);
-app.use(securityMiddleware.addSecurityHeaders);
-
-// Global Variables
-app.use((req, res, next) => {
-    res.locals.user = req.user || null;
-    res.locals.success_msg = req.flash('success_msg');
-    res.locals.error_msg = req.flash('error_msg');
-    res.locals.error = req.flash('error');
-    next();
-});
-
-// ============================================
-// VIEW ENGINE SETUP
-// ============================================
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
-// ============================================
-// ROUTES
-// ============================================
-app.use('/', require('./routes/auth'));
-app.use('/admin', require('./routes/admin'));
-app.use('/student', require('./routes/student'));
-app.use('/courses', require('./routes/courses'));
-app.use('/video', require('./routes/video'));
-
-// Home Route
+// Home
 app.get('/', (req, res) => {
-    res.render('index', { 
-        title: 'Buddika Wijesundara - Advanced Level Chemistry',
-        user: req.user 
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Buddhika LMS</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body {
+                    font-family: Arial, sans-serif;
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    min-height: 100vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 20px;
+                }
+                .card {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 20px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                    max-width: 500px;
+                    width: 100%;
+                    text-align: center;
+                }
+                h1 { color: #1a237e; font-size: 28px; margin-bottom: 10px; }
+                .status { 
+                    background: #d4edda; 
+                    color: #155724; 
+                    padding: 10px; 
+                    border-radius: 8px; 
+                    margin: 20px 0; 
+                }
+                .btn {
+                    display: block;
+                    padding: 15px;
+                    margin: 10px 0;
+                    border-radius: 10px;
+                    text-decoration: none;
+                    font-weight: bold;
+                    font-size: 16px;
+                    transition: 0.3s;
+                }
+                .btn-primary { background: #1a237e; color: white; }
+                .btn-success { background: #28a745; color: white; }
+                .btn-info { background: #17a2b8; color: white; }
+                .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h1>📚 Buddhika Wijayasundara</h1>
+                <p style="color:#666; margin-bottom:10px;">Advanced Level Chemistry LMS</p>
+                
+                <div class="status">
+                    ✅ Server Running Successfully
+                </div>
+                
+                <p style="margin:15px 0; color:#666;">
+                    🟢 System Online | Port: ${PORT}
+                </p>
+                
+                <a href="/login" class="btn btn-primary">🔐 Login</a>
+                <a href="/register" class="btn btn-success">📝 Student Registration</a>
+                <a href="/admin" class="btn btn-info">👨‍🏫 Admin Dashboard</a>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
+// Login
+app.get('/login', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Login - Buddhika LMS</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body {
+                    font-family: Arial, sans-serif;
+                    background: #f5f5f5;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    padding: 20px;
+                }
+                .login-box {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 15px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                    width: 100%;
+                    max-width: 400px;
+                }
+                h2 { text-align: center; color: #1a237e; margin-bottom: 30px; }
+                input {
+                    width: 100%;
+                    padding: 14px;
+                    margin: 10px 0;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 8px;
+                    font-size: 16px;
+                }
+                input:focus { border-color: #1a237e; outline: none; }
+                button {
+                    width: 100%;
+                    padding: 14px;
+                    background: #1a237e;
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    margin-top: 10px;
+                }
+                button:hover { background: #0d1457; }
+                .link { text-align: center; margin-top: 20px; }
+                .link a { color: #1a237e; text-decoration: none; }
+            </style>
+        </head>
+        <body>
+            <div class="login-box">
+                <h2>🔐 Login</h2>
+                <form>
+                    <input type="text" placeholder="Username or Email" required>
+                    <input type="password" placeholder="Password" required>
+                    <button type="submit">Login</button>
+                </form>
+                <div class="link">
+                    <a href="/register">Create New Account</a>
+                </div>
+                <div class="link">
+                    <a href="/">← Back to Home</a>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
+// Register
+app.get('/register', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Register - Buddhika LMS</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body {
+                    font-family: Arial, sans-serif;
+                    background: #f5f5f5;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    padding: 20px;
+                }
+                .register-box {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 15px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                    width: 100%;
+                    max-width: 450px;
+                }
+                h2 { text-align: center; color: #1a237e; margin-bottom: 30px; }
+                input {
+                    width: 100%;
+                    padding: 14px;
+                    margin: 8px 0;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 8px;
+                    font-size: 16px;
+                }
+                input:focus { border-color: #1a237e; outline: none; }
+                .warning {
+                    background: #fff3cd;
+                    color: #856404;
+                    padding: 10px;
+                    border-radius: 5px;
+                    font-size: 13px;
+                    margin: 10px 0;
+                    text-align: center;
+                }
+                button {
+                    width: 100%;
+                    padding: 14px;
+                    background: #28a745;
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    margin-top: 10px;
+                }
+                button:hover { background: #218838; }
+                .link { text-align: center; margin-top: 20px; }
+                .link a { color: #1a237e; text-decoration: none; }
+            </style>
+        </head>
+        <body>
+            <div class="register-box">
+                <h2>📝 Student Registration</h2>
+                <form>
+                    <input type="text" placeholder="Full Name" required>
+                    <input type="email" placeholder="Email" required>
+                    <input type="tel" placeholder="Mobile Number (e.g., 0771234567)" pattern="[0-9]{10,12}" required>
+                    <div class="warning">
+                        ⚠️ One mobile number = One Student ID only
+                    </div>
+                    <input type="password" placeholder="Password (min 6 characters)" minlength="6" required>
+                    <button type="submit">Register</button>
+                </form>
+                <div class="link">
+                    <a href="/login">Already have account? Login</a>
+                </div>
+                <div class="link">
+                    <a href="/">← Back to Home</a>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
+// Admin
+app.get('/admin', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Admin - Buddhika LMS</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body { font-family: Arial, sans-serif; background: #f0f2f5; }
+                .header {
+                    background: linear-gradient(135deg, #1a237e, #283593);
+                    color: white;
+                    padding: 25px;
+                    text-align: center;
+                }
+                .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+                .cards {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                    margin-bottom: 30px;
+                }
+                .card {
+                    background: white;
+                    padding: 25px;
+                    border-radius: 12px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+                }
+                .card h3 { color: #666; font-size: 14px; margin-bottom: 10px; }
+                .card .number { font-size: 36px; font-weight: bold; color: #1a237e; }
+                .menu { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
+                .menu a {
+                    padding: 12px 25px;
+                    background: #1a237e;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 8px;
+                    font-weight: bold;
+                }
+                .menu a:hover { background: #0d1457; }
+                table {
+                    width: 100%;
+                    background: white;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+                }
+                th { background: #1a237e; color: white; padding: 15px; text-align: left; }
+                td { padding: 15px; border-bottom: 1px solid #eee; }
+                .badge {
+                    padding: 5px 12px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: bold;
+                }
+                .active { background: #d4edda; color: #155724; }
+                .inactive { background: #f8d7da; color: #721c24; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>👨‍🏫 Admin Dashboard</h1>
+                <p>Buddhika Wijayasundara - Chemistry LMS</p>
+            </div>
+            
+            <div class="container">
+                <div class="cards">
+                    <div class="card">
+                        <h3>📊 Total Students</h3>
+                        <div class="number">0</div>
+                        <small>System Initializing...</small>
+                    </div>
+                    <div class="card">
+                        <h3>✅ Active Students</h3>
+                        <div class="number">0</div>
+                        <small>System Initializing...</small>
+                    </div>
+                    <div class="card">
+                        <h3>⏳ Pending Payments</h3>
+                        <div class="number">0</div>
+                        <small>System Initializing...</small>
+                    </div>
+                    <div class="card">
+                        <h3>🚨 Inactive (7+ days)</h3>
+                        <div class="number">0</div>
+                        <small>System Initializing...</small>
+                    </div>
+                </div>
+                
+                <div class="menu">
+                    <a href="/admin/students">👥 Students</a>
+                    <a href="/admin/enrollments">📋 Enrollments</a>
+                    <a href="/admin/inactivity">🚨 Inactivity Alerts</a>
+                    <a href="/">🏠 Home</a>
+                </div>
+                
+                <h3 style="margin-bottom:15px;">📋 Recent Activity</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Action</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding:30px; color:#666;">
+                                ⚠️ Database Connection Required<br>
+                                <small>Add PostgreSQL database in Railway to enable full features</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
+// Health check
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        time: new Date().toISOString(),
+        uptime: process.uptime()
     });
 });
 
-// 404 Handler
-app.use((req, res) => {
-    res.status(404).render('404', { title: 'Page Not Found' });
+// Start
+app.listen(PORT, () => {
+    console.log('=================================');
+    console.log(`✅ LMS Server Running`);
+    console.log(`📚 URL: http://localhost:${PORT}`);
+    console.log(`🏥 Health: http://localhost:${PORT}/health`);
+    console.log('=================================');
 });
-
-// Error Handler
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).render('500', { 
-        title: 'Server Error',
-        error: process.env.NODE_ENV === 'development' ? err : {}
-    });
-});
-
-// ============================================
-// DATABASE CONNECTION & SERVER START
-// ============================================
-sequelize.authenticate()
-    .then(() => {
-        console.log('✅ Database connected successfully');
-        return sequelize.sync({ alter: false });
-    })
-    .then(() => {
-        app.listen(PORT, () => {
-            console.log(`🚀 Server running on port ${PORT}`);
-            console.log(`📚 LMS Platform: http://localhost:${PORT}`);
-        });
-    })
-    .catch(err => {
-        console.error('❌ Unable to connect to database:', err);
-    });
-
-module.exports = app;
