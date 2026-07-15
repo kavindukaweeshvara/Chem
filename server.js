@@ -49,17 +49,23 @@ const ADMIN = { username: process.env.ADMIN_USERNAME || 'Buddika', password: pro
 function adminAuth(req, res, next) { return req.session && req.session.isAdminLoggedIn ? next() : res.redirect('/admin/login'); }
 function studentAuth(req, res, next) { return req.session && req.session.isLoggedIn ? next() : res.redirect('/login'); }
 
+// ============================================
 // HOME
+// ============================================
 app.get('/', (req, res) => {
     res.send(`<!DOCTYPE html><html><head><title>Buddika Wijesundara | Chemistry LMS</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}.card{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:480px;width:100%;text-align:center}.logo{width:80px;height:80px;background:linear-gradient(135deg,#1a237e,#4a148c);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:35px;color:white}h1{color:#1a237e;font-size:22px;margin-bottom:5px}.name{color:#1a237e;font-weight:bold;font-size:16px;margin:10px 0;background:#f0f0f0;padding:8px 20px;border-radius:25px;display:inline-block}.status{background:#d4edda;color:#155724;padding:12px;border-radius:8px;margin:20px 0;font-weight:bold}.btn{display:block;padding:15px;margin:10px 0;border-radius:10px;text-decoration:none;color:white;font-weight:bold;font-size:16px}.btn-login{background:#1a237e}.btn-register{background:#28a745}.btn-admin{background:#dc3545}.btn:hover{opacity:0.9}.footer{margin-top:20px;font-size:12px;color:#999}</style></head><body><div class="card"><div class="logo">⚗️</div><h1>Advanced Level Chemistry</h1><p style="color:#666;font-size:14px">Learning Management System</p><p class="name">👨‍🏫 Buddika Wijesundara</p><div class="status">✅ System Online</div><a href="/login" class="btn btn-login">🔐 Student Login</a><a href="/register" class="btn btn-register">📝 New Registration</a><a href="/admin/login" class="btn btn-admin">👨‍🏫 Teacher Login</a><div class="footer">© 2024 Buddika Wijesundara</div></div></body></html>`);
 });
 
+// ============================================
 // REGISTER GET
+// ============================================
 app.get('/register', (req, res) => {
     res.send(`<!DOCTYPE html><html><head><title>Register - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:430px}h2{text-align:center;color:#1a237e;margin-bottom:5px}.sub{text-align:center;color:#666;margin-bottom:20px;font-size:14px}input{width:100%;padding:14px;margin:8px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:16px}input:focus{border-color:#1a237e;outline:none}.warn{background:#fff3cd;color:#856404;padding:10px;border-radius:5px;font-size:13px;margin:10px 0;text-align:center}.info{background:#e3f2fd;color:#1565c0;padding:10px;border-radius:5px;font-size:13px;margin:10px 0;text-align:center}button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#218838}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}</style></head><body><div class="box"><h2>📝 Student Registration</h2><p class="sub">👨‍🏫 Buddika Wijesundara | Chemistry</p><form action="/register" method="POST"><input type="text" name="fullName" placeholder="Full Name" required><input type="email" name="email" placeholder="Email" required><input type="tel" name="mobile" placeholder="Mobile (0771234567)" pattern="[0-9]{10,12}" required><div class="warn">⚠️ එක Mobile Number = එක Student ID</div><div class="info">🆔 Auto ID: BC-1001, BC-1002...</div><input type="password" name="password" placeholder="Password (min 6)" minlength="6" required><button type="submit">Register</button></form><div class="link"><a href="/login">Already have account? Login</a></div><div class="link"><a href="/">← Home</a></div></div></body></html>`);
 });
 
+// ============================================
 // REGISTER POST
+// ============================================
 app.post('/register', async (req, res) => {
     try {
         const { fullName, email, mobile, password } = req.body;
@@ -81,12 +87,17 @@ app.post('/register', async (req, res) => {
     }
 });
 
+// ============================================
 // LOGIN GET
+// ============================================
 app.get('/login', (req, res) => {
+    if (req.session && req.session.isLoggedIn) return res.redirect('/student/dashboard');
     res.send(`<!DOCTYPE html><html><head><title>Login - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px}h2{text-align:center;color:#1a237e;margin-bottom:20px}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:16px}input:focus{border-color:#1a237e;outline:none}button{width:100%;padding:14px;background:#1a237e;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#0d1457}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}</style></head><body><div class="box"><h2>🔐 Student Login</h2><form action="/login" method="POST"><input type="text" name="username" placeholder="Email or Username" required><input type="password" name="password" placeholder="Password" required><button type="submit">Login</button></form><div class="link"><a href="/register">New Student? Register</a></div><div class="link"><a href="/">← Home</a></div></div></body></html>`);
 });
 
+// ============================================
 // LOGIN POST
+// ============================================
 app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -110,19 +121,25 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// ============================================
 // STUDENT DASHBOARD
+// ============================================
 app.get('/student/dashboard', studentAuth, (req, res) => {
     res.send(`<!DOCTYPE html><html><head><title>Dashboard - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.logout{background:#dc3545;color:white;padding:8px 18px;border-radius:5px;text-decoration:none;font-size:13px}.container{max-width:700px;margin:30px auto;padding:20px}.card{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:20px}.id-badge{font-size:28px;font-weight:bold;color:#1a237e;background:#f0f0f0;padding:12px 25px;border-radius:10px;display:inline-block;margin:15px 0}.info-row{margin:12px 0;font-size:16px;color:#333;padding:10px;background:#f9f9f9;border-radius:5px}</style></head><body><div class="header"><h1>👨‍🎓 Student Dashboard</h1><a href="/logout" class="logout">🚪 Logout</a></div><div class="container"><div class="card"><h2 style="color:#1a237e">Welcome, ${req.session.userName}!</h2><div class="id-badge">🆔 ${req.session.studentId}</div><div class="info-row"><strong>📱 Mobile:</strong> ${req.session.userMobile || 'N/A'}</div><div class="info-row"><strong>📚 Course:</strong> Advanced Level Chemistry</div><div class="info-row"><strong>👨‍🏫 Teacher:</strong> Buddika Wijesundara</div></div></div></body></html>`);
 });
 
+// ============================================
 // ADMIN LOGIN GET
+// ============================================
 app.get('/admin/login', (req, res) => {
     if (req.session && req.session.isAdminLoggedIn) return res.redirect('/admin/dashboard');
     const err = req.query.error === '1' ? '❌ Wrong Username or Password!' : '';
     res.send(`<!DOCTYPE html><html><head><title>Teacher Login</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#0d1457);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.4);width:100%;max-width:400px}.icon{text-align:center;font-size:60px;margin-bottom:20px}h2{text-align:center;color:#1a237e;margin-bottom:5px}.sub{text-align:center;color:#666;margin-bottom:25px;font-size:14px}.error{background:#f8d7da;color:#721c24;padding:12px;border-radius:8px;margin-bottom:20px;text-align:center;${err?'':'display:none'}}input{width:100%;padding:15px;margin:10px 0;border:2px solid #e0e0e0;border-radius:10px;font-size:16px}input:focus{border-color:#1a237e;outline:none}button{width:100%;padding:15px;margin-top:15px;background:linear-gradient(135deg,#1a237e,#283593);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer}button:hover{transform:translateY(-2px)}.link{text-align:center;margin-top:20px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.note{text-align:center;margin-top:20px;font-size:12px;color:#999;background:#f5f5f5;padding:10px;border-radius:8px}</style></head><body><div class="box"><div class="icon">🔒</div><h2>👨‍🏫 Teacher Login</h2><p class="sub">Buddika Wijesundara | Chemistry LMS</p><div class="error">${err}</div><form action="/admin/login" method="POST"><input type="text" name="username" placeholder="👤 Username" required autofocus><input type="password" name="password" placeholder="🔑 Password" required><button type="submit">🔐 Login</button></form><div class="note">🛡️ Authorized Teacher Only</div><div class="link"><a href="/">← Home</a></div></div></body></html>`);
 });
 
+// ============================================
 // ADMIN LOGIN POST
+// ============================================
 app.post('/admin/login', (req, res) => {
     const { username, password } = req.body;
     if (username === ADMIN.username && password === ADMIN.password) {
@@ -134,28 +151,124 @@ app.post('/admin/login', (req, res) => {
     return res.redirect('/admin/login?error=1');
 });
 
+// ============================================
 // ADMIN DASHBOARD
+// ============================================
 app.get('/admin/dashboard', adminAuth, async (req, res) => {
     let total = 0;
     if (dbConnected) { try { const [c] = await db.query(`SELECT COUNT(*) as count FROM users WHERE role='student'`); total = c[0]?.count || 0; } catch(e) {} }
     const dbStatus = dbConnected ? '<span style="color:#28a745">✅ Connected</span>' : '<span style="color:#dc3545">❌ Not Connected</span>';
-    res.send(`<!DOCTYPE html><html><head><title>Admin - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.logout{background:#dc3545;color:white;padding:8px 18px;border-radius:5px;text-decoration:none;font-size:13px}.container{max-width:1100px;margin:25px auto;padding:0 20px}.teacher-card{background:white;padding:20px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:20px;display:flex;align-items:center;gap:15px}.avatar{width:55px;height:55px;background:#1a237e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:white}.db-status{background:white;padding:12px 20px;border-radius:8px;margin-bottom:20px;font-size:14px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:25px}.card{background:white;padding:20px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.08);text-align:center}.card h3{color:#666;font-size:13px}.card .num{font-size:32px;font-weight:bold;color:#1a237e;margin:8px 0}.menu{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:25px}.menu a{padding:12px 22px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-size:14px;font-weight:bold}.menu a:hover{background:#0d1457}</style></head><body><div class="header"><h1>👨‍🏫 Buddika Wijesundara - Admin</h1><div><span style="font-size:13px;margin-right:10px">${ADMIN.name}</span><a href="/admin/logout" class="logout">🚪 Logout</a></div></div><div class="container"><div class="db-status">Database: ${dbStatus}</div><div class="teacher-card"><div class="avatar">👨‍🏫</div><div><h2 style="color:#1a237e">${ADMIN.name}</h2><p style="color:#666">Advanced Level Chemistry</p></div></div><div class="cards"><div class="card"><h3>📊 Total Students</h3><div class="num">${total}</div></div><div class="card"><h3>✅ Active</h3><div class="num">${total}</div></div><div class="card"><h3>⏳ Pending</h3><div class="num">0</div></div><div class="card"><h3>🚨 Inactive</h3><div class="num">0</div></div></div><div class="menu"><a href="/admin/students">👥 Students</a><a href="/admin/enrollments">📋 Enrollments</a><a href="/admin/analytics">📊 Analytics</a><a href="/">🏠 Home</a></div><p style="text-align:center;color:#666;margin-top:20px">✅ Registration + Login Working!</p></div></body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Admin - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.logout{background:#dc3545;color:white;padding:8px 18px;border-radius:5px;text-decoration:none;font-size:13px}.container{max-width:1100px;margin:25px auto;padding:0 20px}.teacher-card{background:white;padding:20px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:20px;display:flex;align-items:center;gap:15px}.avatar{width:55px;height:55px;background:#1a237e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:white}.db-status{background:white;padding:12px 20px;border-radius:8px;margin-bottom:20px;font-size:14px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:25px}.card{background:white;padding:20px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.08);text-align:center}.card h3{color:#666;font-size:13px}.card .num{font-size:32px;font-weight:bold;color:#1a237e;margin:8px 0}.menu{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:25px}.menu a{padding:12px 22px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-size:14px;font-weight:bold}.menu a:hover{background:#0d1457}</style></head><body><div class="header"><h1>👨‍🏫 Buddika Wijesundara - Admin</h1><div><span style="font-size:13px;margin-right:10px">${ADMIN.name}</span><a href="/admin/logout" class="logout">🚪 Logout</a></div></div><div class="container"><div class="db-status">Database: ${dbStatus}</div><div class="teacher-card"><div class="avatar">👨‍🏫</div><div><h2 style="color:#1a237e">${ADMIN.name}</h2><p style="color:#666">Advanced Level Chemistry</p></div></div><div class="cards"><div class="card"><h3>📊 Total Students</h3><div class="num">${total}</div></div><div class="card"><h3>✅ Active</h3><div class="num">${total}</div></div><div class="card"><h3>⏳ Pending</h3><div class="num">0</div></div><div class="card"><h3>🚨 Inactive</h3><div class="num">0</div></div></div><div class="menu"><a href="/admin/students">👥 Students</a><a href="/admin/enrollments">📋 Enrollments</a><a href="/admin/inactivity">🚨 Inactive Alerts</a><a href="/admin/analytics">📊 Analytics</a><a href="/">🏠 Home</a></div><p style="text-align:center;color:#666;margin-top:20px">✅ System Working!</p></div></body></html>`);
 });
 
-// ADMIN SUB PAGES
-app.get('/admin/students', adminAuth, (req, res) => { res.send(`<div style="padding:30px"><h1>👥 Students</h1><p>Protected Page</p><a href="/admin/dashboard">← Back</a></div>`); });
-app.get('/admin/enrollments', adminAuth, (req, res) => { res.send(`<div style="padding:30px"><h1>📋 Enrollments</h1><p>Protected Page</p><a href="/admin/dashboard">← Back</a></div>`); });
-app.get('/admin/analytics', adminAuth, (req, res) => { res.send(`<div style="padding:30px"><h1>📊 Analytics</h1><p>Protected Page</p><a href="/admin/dashboard">← Back</a></div>`); });
+// ============================================
+// ADMIN - STUDENTS PAGE (Real Data)
+// ============================================
+app.get('/admin/students', adminAuth, async (req, res) => {
+    let students = [];
+    if (dbConnected) {
+        try {
+            const [rows] = await db.query(`SELECT student_id, full_name, email, mobile_number, school_name, is_active, last_login_at, created_at FROM users WHERE role='student' ORDER BY created_at DESC`);
+            students = rows;
+        } catch(e) { console.error('Students fetch error:', e.message); }
+    }
+    
+    let tableRows = '';
+    if (students.length > 0) {
+        students.forEach(s => {
+            tableRows += `<tr><td><strong>${s.student_id}</strong></td><td>${s.full_name}</td><td>${s.email}</td><td>${s.mobile_number}</td><td>${s.school_name || 'N/A'}</td><td><span class="badge ${s.is_active ? 'active' : 'inactive'}">${s.is_active ? 'Active' : 'Inactive'}</span></td><td>${s.last_login_at ? new Date(s.last_login_at).toLocaleDateString() : 'Never'}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`;
+        });
+    } else {
+        tableRows = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#666;">No students registered yet.</td></tr>';
+    }
+    
+    res.send(`<!DOCTYPE html><html><head><title>Students - Buddika Wijesundara</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.back{color:white;text-decoration:none;font-size:14px}.container{max-width:1200px;margin:25px auto;padding:0 20px}.card{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08)}h2{color:#1a237e;margin-bottom:20px}table{width:100%;border-collapse:collapse}th{background:#1a237e;color:white;padding:12px;text-align:left;font-size:13px}td{padding:12px;border-bottom:1px solid #eee;font-size:14px}tr:hover{background:#f5f5f5}.badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:bold}.active{background:#d4edda;color:#155724}.inactive{background:#f8d7da;color:#721c24}.search-box{margin-bottom:20px}.search-box input{padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;width:300px}.count{background:#e3f2fd;color:#1565c0;padding:10px 20px;border-radius:8px;display:inline-block;margin-bottom:15px;font-weight:bold}</style></head><body><div class="header"><h1>👥 Student Management</h1><a href="/admin/dashboard" class="back">← Dashboard</a></div><div class="container"><div class="card"><h2>All Students</h2><div class="count">📊 Total: ${students.length} Students</div><div class="search-box"><input type="text" id="searchInput" placeholder="🔍 Search by Name, ID or Mobile..." onkeyup="searchTable()"></div><div style="overflow-x:auto"><table id="studentTable"><thead><tr><th>Student ID</th><th>Full Name</th><th>Email</th><th>Mobile</th><th>School</th><th>Status</th><th>Last Login</th><th>Registered</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div><script>function searchTable(){var input=document.getElementById('searchInput');var filter=input.value.toUpperCase();var table=document.getElementById('studentTable');var tr=table.getElementsByTagName('tr');for(var i=1;i<tr.length;i++){var td=tr[i].getElementsByTagName('td');var found=false;for(var j=0;j<td.length;j++){if(td[j]){var txt=td[j].textContent||td[j].innerText;if(txt.toUpperCase().indexOf(filter)>-1){found=true;break}}}tr[i].style.display=found?'':'none'}}</script></body></html>`);
+});
 
+// ============================================
+// ADMIN - ENROLLMENTS PAGE
+// ============================================
+app.get('/admin/enrollments', adminAuth, async (req, res) => {
+    let enrollments = [];
+    if (dbConnected) {
+        try {
+            const [rows] = await db.query(`SELECT e.*, u.student_id, u.full_name, u.mobile_number FROM enrollments e JOIN users u ON e.user_id = u.id ORDER BY e.created_at DESC`);
+            enrollments = rows;
+        } catch(e) { console.error('Enrollments fetch error:', e.message); }
+    }
+    
+    let tableRows = '';
+    if (enrollments.length > 0) {
+        enrollments.forEach(e => {
+            tableRows += `<tr><td><strong>${e.student_id}</strong></td><td>${e.full_name}</td><td>${e.mobile_number}</td><td><span class="badge badge-${e.status}">${e.status}</span></td><td><span class="badge badge-${e.payment_status}">${e.payment_status}</span></td><td>${new Date(e.enrolled_at).toLocaleDateString()}</td></tr>`;
+        });
+    } else {
+        tableRows = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#666;">No enrollments yet.</td></tr>';
+    }
+    
+    res.send(`<!DOCTYPE html><html><head><title>Enrollments - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.back{color:white;text-decoration:none;font-size:14px}.container{max-width:1000px;margin:25px auto;padding:0 20px}.card{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08)}h2{color:#1a237e;margin-bottom:20px}table{width:100%;border-collapse:collapse}th{background:#1a237e;color:white;padding:12px;text-align:left;font-size:13px}td{padding:12px;border-bottom:1px solid #eee;font-size:14px}tr:hover{background:#f5f5f5}.badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:bold}.badge-active{background:#d4edda;color:#155724}.badge-pending{background:#fff3cd;color:#856404}.badge-revoked{background:#f8d7da;color:#721c24}.badge-verified{background:#d4edda;color:#155724}.badge-unpaid{background:#f8d7da;color:#721c24}.badge-pending_verification{background:#fff3cd;color:#856404}</style></head><body><div class="header"><h1>📋 Enrollment Management</h1><a href="/admin/dashboard" class="back">← Dashboard</a></div><div class="container"><div class="card"><h2>All Enrollments</h2><div style="overflow-x:auto"><table><thead><tr><th>Student ID</th><th>Name</th><th>Mobile</th><th>Status</th><th>Payment</th><th>Date</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div></body></html>`);
+});
+
+// ============================================
+// ADMIN - INACTIVE STUDENTS PAGE
+// ============================================
+app.get('/admin/inactivity', adminAuth, async (req, res) => {
+    let inactive = [];
+    if (dbConnected) {
+        try {
+            const [rows] = await db.query(`SELECT student_id, full_name, email, mobile_number, last_login_at, created_at FROM users WHERE role='student' AND (last_login_at IS NULL OR last_login_at < NOW() - INTERVAL '7 days') ORDER BY last_login_at ASC NULLS FIRST`);
+            inactive = rows;
+        } catch(e) {}
+    }
+    
+    let tableRows = '';
+    if (inactive.length > 0) {
+        inactive.forEach(s => {
+            const days = s.last_login_at ? Math.floor((Date.now() - new Date(s.last_login_at)) / (86400000)) : 'Never';
+            tableRows += `<tr><td><strong>${s.student_id}</strong></td><td>${s.full_name}</td><td>${s.mobile_number}</td><td>${s.last_login_at ? new Date(s.last_login_at).toLocaleDateString() : 'Never'}</td><td><span class="badge">${days} days</span></td></tr>`;
+        });
+    } else {
+        tableRows = '<tr><td colspan="5" style="text-align:center;padding:30px;color:#28a745;">✅ All students active! No inactivity alerts.</td></tr>';
+    }
+    
+    res.send(`<!DOCTYPE html><html><head><title>Inactive Students</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#dc3545,#c82333);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.back{color:white;text-decoration:none;font-size:14px}.container{max-width:1000px;margin:25px auto;padding:0 20px}.card{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08)}h2{color:#dc3545;margin-bottom:20px}table{width:100%;border-collapse:collapse}th{background:#dc3545;color:white;padding:12px;text-align:left;font-size:13px}td{padding:12px;border-bottom:1px solid #eee;font-size:14px}tr:hover{background:#fff5f5}.badge{background:#f8d7da;color:#721c24;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:bold}.count{background:#f8d7da;color:#721c24;padding:10px 20px;border-radius:8px;display:inline-block;margin-bottom:15px;font-weight:bold}</style></head><body><div class="header"><h1>🚨 Inactive Students (7+ Days)</h1><a href="/admin/dashboard" class="back">← Dashboard</a></div><div class="container"><div class="card"><h2>Inactive Students</h2><div class="count">⚠️ ${inactive.length} Students Inactive</div><div style="overflow-x:auto"><table><thead><tr><th>Student ID</th><th>Name</th><th>Mobile</th><th>Last Login</th><th>Status</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div></body></html>`);
+});
+
+// ============================================
+// ADMIN - ANALYTICS PAGE
+// ============================================
+app.get('/admin/analytics', adminAuth, async (req, res) => {
+    let totalStudents = 0, activeToday = 0, inactiveWeek = 0;
+    
+    if (dbConnected) {
+        try {
+            const [t] = await db.query(`SELECT COUNT(*) as count FROM users WHERE role='student'`);
+            totalStudents = t[0]?.count || 0;
+            const [a] = await db.query(`SELECT COUNT(*) as count FROM users WHERE role='student' AND last_login_at > NOW() - INTERVAL '1 day'`);
+            activeToday = a[0]?.count || 0;
+            const [i] = await db.query(`SELECT COUNT(*) as count FROM users WHERE role='student' AND (last_login_at IS NULL OR last_login_at < NOW() - INTERVAL '7 days')`);
+            inactiveWeek = i[0]?.count || 0;
+        } catch(e) {}
+    }
+    
+    res.send(`<!DOCTYPE html><html><head><title>Analytics - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.back{color:white;text-decoration:none;font-size:14px}.container{max-width:900px;margin:25px auto;padding:0 20px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin-bottom:25px}.card{background:white;padding:30px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);text-align:center}.card .icon{font-size:40px;margin-bottom:10px}.card .num{font-size:42px;font-weight:bold;color:#1a237e;margin:10px 0}.card .label{color:#666;font-size:14px}.card.green{border-top:4px solid #28a745}.card.blue{border-top:4px solid #1a237e}.card.red{border-top:4px solid #dc3545}.info-box{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08)}h2{color:#1a237e;margin-bottom:15px}p{color:#666;line-height:1.8}</style></head><body><div class="header"><h1>📊 Analytics</h1><a href="/admin/dashboard" class="back">← Dashboard</a></div><div class="container"><div class="cards"><div class="card blue"><div class="icon">👥</div><div class="num">${totalStudents}</div><div class="label">Total Students</div></div><div class="card green"><div class="icon">✅</div><div class="num">${activeToday}</div><div class="label">Active Today</div></div><div class="card red"><div class="icon">🚨</div><div class="num">${inactiveWeek}</div><div class="label">Inactive (7+ Days)</div></div></div><div class="info-box"><h2>📹 Video Analytics</h2><p>Video watch tracking available after VdoCipher integration.</p><p style="margin-top:15px;color:#1a237e"><strong>👨‍🏫 Teacher:</strong> Buddika Wijesundara</p><p><strong>📚 Subject:</strong> Advanced Level Chemistry</p></div></div></body></html>`);
+});
+
+// ============================================
 // LOGOUT
+// ============================================
 app.get('/logout', (req, res) => { req.session.destroy(() => res.redirect('/')); });
 app.get('/admin/logout', (req, res) => { req.session.destroy(() => res.redirect('/admin/login')); });
 app.get('/admin', (req, res) => res.redirect('/admin/login'));
 
+// ============================================
 // HEALTH
+// ============================================
 app.get('/health', (req, res) => res.json({ status: 'ok', db: dbConnected ? 'connected' : 'disconnected', time: new Date().toISOString() }));
 
-// START
+// ============================================
+// START SERVER
+// ============================================
 app.listen(PORT, () => {
     console.log('===================================');
     console.log('⚗️  Buddika Wijesundara LMS');
