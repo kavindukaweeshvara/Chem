@@ -1,12 +1,10 @@
 {
   "name": "buddika-wijesundara-lms",
   "version": "1.0.0",
-  "description": "Buddika Wijesundara - Chemistry LMS",
+  "description": "Buddika Wijesundara LMS",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "seed": "node seeds/adminUser.js",
-    "migrate": "node config/migrate.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -14,7 +12,8 @@
     "pg": "^8.11.3",
     "sequelize": "^6.35.2",
     "bcryptjs": "^2.4.3",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "nodemailer": "^6.9.8"
   },
   "engines": {
     "node": ">=18.0.0"
