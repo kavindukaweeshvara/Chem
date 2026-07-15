@@ -34,7 +34,9 @@ async function createAdmin() {
             }
         );
 
-        console.log('✅ Admin Created: Buddika / Buddika@2024');
+        console.log('✅ Admin Created Successfully!');
+        console.log('   Username: Buddika');
+        console.log('   Password: Buddika@2024');
         process.exit(0);
     } catch (error) {
         console.error('❌ Error:', error.message);
