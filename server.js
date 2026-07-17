@@ -38,7 +38,7 @@ const upload = multer({
 // ============================================
 const TEACHER = {
     name: process.env.TEACHER_NAME || 'Buddika Wijesundara',
-    email: process.env.TEACHER_EMAIL || 'buddika@chemistry.lk',
+    email: process.env.TEACHER_EMAIL || 'buddhika@chemistry.lk',
     phone: process.env.TEACHER_PHONE || '0712345678',
     whatsapp: process.env.WHATSAPP_NUMBER || '94771234567',
     bankName: process.env.BANK_NAME || 'Sampath Bank',
@@ -48,7 +48,7 @@ const TEACHER = {
 };
 
 // ============================================
-// DATABASE SETUP
+// DATABASE SETUP (NO DROP TABLE - DATA SAFE)
 // ============================================
 let db = null;
 let dbConnected = false;
@@ -67,17 +67,15 @@ try {
             try {
                 await db.query(`CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, student_id VARCHAR(50) UNIQUE, username VARCHAR(100) UNIQUE NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, full_name VARCHAR(255) NOT NULL, mobile_number VARCHAR(20) UNIQUE NOT NULL, nic_number VARCHAR(30), school_name VARCHAR(255), district VARCHAR(100), city VARCHAR(100), birthdate DATE, gender VARCHAR(20), address TEXT, profile_image VARCHAR(500), profile_updated BOOLEAN DEFAULT false, role VARCHAR(20) DEFAULT 'student', is_active BOOLEAN DEFAULT true, last_login_at TIMESTAMP, reset_token VARCHAR(255), reset_token_expires TIMESTAMP, verification_code VARCHAR(10), created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW())`);
                 await db.query(`CREATE TABLE IF NOT EXISTS courses (id SERIAL PRIMARY KEY, title VARCHAR(255) NOT NULL, description TEXT, price DECIMAL(10,2) DEFAULT 0, image_url VARCHAR(500), teacher_name VARCHAR(255) DEFAULT '${TEACHER.name}', teacher_image VARCHAR(500), status VARCHAR(20) DEFAULT 'draft', created_at TIMESTAMP DEFAULT NOW())`);
-                await db.query(`DROP TABLE IF EXISTS lessons CASCADE`);
-                await db.query(`CREATE TABLE lessons (id SERIAL PRIMARY KEY, course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE, title VARCHAR(255) NOT NULL, topic_name VARCHAR(255), zoom_link VARCHAR(500), video_url VARCHAR(500), order_number INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT NOW())`);
-                await db.query(`DROP TABLE IF EXISTS enrollments CASCADE`);
-                await db.query(`CREATE TABLE enrollments (id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE CASCADE, course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE, status VARCHAR(20) DEFAULT 'pending', payment_status VARCHAR(20) DEFAULT 'unpaid', payment_proof VARCHAR(500), enrolled_at TIMESTAMP DEFAULT NOW(), expires_at TIMESTAMP, revoked_at TIMESTAMP, created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW())`);
+                await db.query(`CREATE TABLE IF NOT EXISTS lessons (id SERIAL PRIMARY KEY, course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE, title VARCHAR(255) NOT NULL, topic_name VARCHAR(255), zoom_link VARCHAR(500), video_url VARCHAR(500), order_number INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT NOW())`);
+                await db.query(`CREATE TABLE IF NOT EXISTS enrollments (id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE CASCADE, course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE, status VARCHAR(20) DEFAULT 'pending', payment_status VARCHAR(20) DEFAULT 'unpaid', payment_proof VARCHAR(500), enrolled_at TIMESTAMP DEFAULT NOW(), expires_at TIMESTAMP, revoked_at TIMESTAMP, created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW())`);
                 await db.query(`CREATE TABLE IF NOT EXISTS activities (id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id), action VARCHAR(100) NOT NULL, details TEXT, created_at TIMESTAMP DEFAULT NOW())`);
-                console.log('✅ All tables created');
+                console.log('✅ All tables ready (data preserved)');
                 const [admin] = await db.query(`SELECT * FROM users WHERE username = 'Buddika'`);
                 if (admin.length === 0) {
                     const hash = await bcrypt.hash('Buddika@2024', 12);
                     await db.query(`INSERT INTO users (student_id, username, email, password, full_name, mobile_number, role, is_active) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, { bind: ['BC-ADMIN-001', 'Buddika', TEACHER.email, hash, TEACHER.name, TEACHER.phone, 'admin', true] });
-                    console.log(`✅ Admin: Buddika / Buddika@2024`);
+                    console.log(`✅ Admin created: Buddika / Buddika@2024`);
                 }
             } catch (e) { console.error('Table error:', e.message); }
         }).catch(() => { dbConnected = false; });
@@ -188,15 +186,12 @@ app.post('/login', async (req, res) => {
 });
 
 // ============================================
-// FORGOT PASSWORD - GET
+// FORGOT PASSWORD - GET/POST/VERIFY/RESET
 // ============================================
 app.get('/forgot-password', (req, res) => {
     res.send(`<!DOCTYPE html><html><head><title>Forgot Password</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:420px}h2{text-align:center;color:#1a237e;margin-bottom:10px;font-size:22px}p{text-align:center;color:#666;margin-bottom:20px;font-size:14px}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}button{width:100%;padding:14px;background:#dc3545;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.3s}button:hover{background:#c82333;transform:translateY(-2px)}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.info{background:#e3f2fd;color:#1565c0;padding:12px;border-radius:8px;font-size:13px;margin:10px 0;text-align:center}</style></head><body><div class="box"><h2>🔑 Forgot Password?</h2><p>Enter your email to receive verification code</p><form action="/forgot-password" method="POST"><input type="email" name="email" placeholder="Your Email Address" required><button type="submit">📧 Send Verification Code</button></form><div class="info">📧 Verification code will be sent to your email</div><div class="link"><a href="/login">← Back to Login</a></div></div></body></html>`);
 });
 
-// ============================================
-// FORGOT PASSWORD - POST
-// ============================================
 app.post('/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
@@ -218,9 +213,6 @@ app.post('/forgot-password', async (req, res) => {
     } catch (e) { res.send(`<script>alert('Error: ${e.message}');window.location.href='/forgot-password'</script>`); }
 });
 
-// ============================================
-// VERIFY CODE + RESET PASSWORD
-// ============================================
 app.post('/verify-code', async (req, res) => { try { const { token, email, code } = req.body; if (!token || !email || !code) return res.send(`<script>alert('All fields required!');window.location.href='/forgot-password'</script>`); if (dbConnected) { const [users] = await db.query(`SELECT * FROM users WHERE email=$1 AND reset_token=$2 AND verification_code=$3 AND reset_token_expires > NOW()`, { bind: [email, token, code] }); if (users.length === 0) return res.send(`<!DOCTYPE html><html><head><title>Invalid</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center}h2{color:#dc3545;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>❌ Invalid Code!</h2><p>The verification code is incorrect or expired.</p><a href="/forgot-password" class="btn">🔄 Try Again</a></div></body></html>`); } res.redirect(`/reset-password?token=${token}&verified=true`); } catch (e) { res.send(`<script>alert('Error: ${e.message}');window.location.href='/forgot-password'</script>`); } });
 
 app.get('/reset-password', async (req, res) => {
@@ -279,7 +271,7 @@ app.post('/student/profile/update', studentAuth, async (req, res) => {
 });
 
 // ============================================
-// STUDENT - PAYMENT PAGE
+// STUDENT - PAYMENT PAGE (Variables)
 // ============================================
 app.get('/student/payment', studentAuth, (req, res) => {
     res.send(`<!DOCTYPE html><html><head><title>Payment - ${TEACHER.name}</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.card{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);max-width:500px;width:100%;text-align:center}h2{color:#1a237e;margin-bottom:15px}.bank-details{background:#f9f9f9;padding:20px;border-radius:10px;margin:20px 0;text-align:left}.bank-details p{margin:8px 0;font-size:15px}.highlight{background:#fff3cd;color:#856404;padding:15px;border-radius:8px;margin:20px 0;font-size:14px}.btn-wa{display:inline-block;padding:14px 30px;background:#25D366;color:white;text-decoration:none;border-radius:10px;font-weight:bold;font-size:16px;margin:10px;transition:0.3s}.btn-wa:hover{transform:translateY(-2px)}.btn-back{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px}</style></head><body><div class="card"><h2>💰 Payment Details</h2><p style="color:#666;">${TEACHER.name} - Chemistry LMS</p><div class="bank-details"><h3 style="color:#1a237e;margin-bottom:10px;">🏦 Bank Details</h3><p><strong>Bank:</strong> ${TEACHER.bankName}</p><p><strong>Account Name:</strong> ${TEACHER.bankAccountName}</p><p><strong>Account Number:</strong> ${TEACHER.bankAccountNumber}</p><p><strong>Branch:</strong> ${TEACHER.bankBranch}</p></div><div class="highlight"><strong>📱 Payment කළ පසු:</strong><br>1. Screenshot/Receipt එක ගන්න<br>2. පහත WhatsApp Button click කරන්න<br>3. Receipt + Student ID (<strong>${req.session.studentId}</strong>) send කරන්න</div><a href="https://wa.me/${TEACHER.whatsapp}?text=Payment%20Receipt%20-%20Student%20ID:%20${req.session.studentId}%20-%20Name:%20${encodeURIComponent(req.session.userName)}" target="_blank" class="btn-wa">📱 Send Receipt via WhatsApp</a><br><a href="/student/dashboard" class="btn-back">← Back</a></div></body></html>`);
@@ -325,7 +317,7 @@ app.post('/admin/login', (req, res) => {
 });
 
 // ============================================
-// ADMIN DASHBOARD (with Teacher Photo)
+// ADMIN DASHBOARD
 // ============================================
 app.get('/admin/dashboard', adminAuth, async (req, res) => {
     let total = 0;
@@ -448,5 +440,6 @@ app.listen(PORT, () => {
     console.log(`🔑 Admin: Buddika / Buddika@2024`);
     console.log(`📷 Upload Photo: /admin/profile`);
     console.log(`📱 WhatsApp: ${TEACHER.whatsapp}`);
+    console.log(`💾 Data Safe: No DROP TABLE`);
     console.log('===================================');
 });
