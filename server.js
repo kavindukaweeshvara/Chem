@@ -60,70 +60,14 @@ function studentAuth(req, res, next) { return req.session && req.session.isLogge
 // HOME
 // ============================================
 app.get('/', (req, res) => {
-    res.send(`<!DOCTYPE html><html><head><title>Buddika Wijesundara | Chemistry LMS</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}.card{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:480px;width:100%;text-align:center}.logo{width:80px;height:80px;background:linear-gradient(135deg,#1a237e,#4a148c);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:35px;color:white}h1{color:#1a237e;font-size:22px;margin-bottom:5px}.name{color:#1a237e;font-weight:bold;font-size:16px;margin:10px 0;background:#f0f0f0;padding:8px 20px;border-radius:25px;display:inline-block}.status{background:#d4edda;color:#155724;padding:12px;border-radius:8px;margin:20px 0;font-weight:bold}.btn{display:block;padding:15px;margin:10px 0;border-radius:10px;text-decoration:none;color:white;font-weight:bold;font-size:16px}.btn-login{background:#1a237e}.btn-register{background:#28a745}.btn-admin{background:#dc3545}.btn:hover{opacity:0.9}.footer{margin-top:20px;font-size:12px;color:#999}</style></head><body><div class="card"><div class="logo">⚗️</div><h1>Advanced Level Chemistry</h1><p style="color:#666;font-size:14px">Learning Management System</p><p class="name">👨‍🏫 Buddika Wijesundara</p><div class="status">✅ System Online</div><a href="/login" class="btn btn-login">🔐 Student Login</a><a href="/register" class="btn btn-register">📝 New Registration</a><a href="/admin/login" class="btn btn-admin">👨‍🏫 Teacher Login</a><div class="footer">© 2026 Buddika Wijesundara</div></div></body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Buddika Wijesundara | Chemistry LMS</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}.card{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:480px;width:100%;text-align:center}.logo{width:80px;height:80px;background:linear-gradient(135deg,#1a237e,#4a148c);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:35px;color:white}h1{color:#1a237e;font-size:22px;margin-bottom:5px}.name{color:#1a237e;font-weight:bold;font-size:16px;margin:10px 0;background:#f0f0f0;padding:8px 20px;border-radius:25px;display:inline-block}.status{background:#d4edda;color:#155724;padding:12px;border-radius:8px;margin:20px 0;font-weight:bold}.btn{display:block;padding:15px;margin:10px 0;border-radius:10px;text-decoration:none;color:white;font-weight:bold;font-size:16px;transition:0.3s}.btn:hover{transform:translateY(-2px);opacity:0.9}.btn-login{background:#1a237e}.btn-register{background:#28a745}.btn-admin{background:#dc3545}.footer{margin-top:20px;font-size:12px;color:#999}</style></head><body><div class="card"><div class="logo">⚗️</div><h1>Advanced Level Chemistry</h1><p style="color:#666;font-size:14px">Learning Management System</p><p class="name">👨‍🏫 Buddika Wijesundara</p><div class="status">✅ System Online</div><a href="/login" class="btn btn-login">🔐 Student Login</a><a href="/register" class="btn btn-register">📝 New Registration</a><a href="/admin/login" class="btn btn-admin">👨‍🏫 Teacher Login</a><div class="footer">© 2026 Buddika Wijesundara</div></div></body></html>`);
 });
 
 // ============================================
-// REGISTER GET (with Password Show/Hide)
+// REGISTER GET (with 👁️ Password Show/Hide)
 // ============================================
 app.get('/register', (req, res) => {
-    res.send(`<!DOCTYPE html><html><head><title>Register - Buddika Wijesundara</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
-        .box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:450px}
-        h2{text-align:center;color:#1a237e;margin-bottom:5px;font-size:22px}
-        .sub{text-align:center;color:#666;margin-bottom:20px;font-size:14px}
-        .input-group{position:relative;margin:8px 0}
-        .input-group input{width:100%;padding:14px 45px 14px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}
-        .input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}
-        .input-group input[type="text"],.input-group input[type="email"],.input-group input[type="tel"]{padding-right:14px}
-        .toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}
-        .toggle-password:hover{color:#1a237e}
-        .warn{background:#fff3cd;color:#856404;padding:10px;border-radius:5px;font-size:13px;margin:10px 0;text-align:center;border:1px solid #ffc107}
-        .info{background:#e3f2fd;color:#1565c0;padding:10px;border-radius:5px;font-size:13px;margin:10px 0;text-align:center}
-        button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.3s}
-        button:hover{background:#218838;transform:translateY(-2px)}
-        .link{text-align:center;margin-top:15px}
-        .link a{color:#1a237e;text-decoration:none;font-size:14px}
-        .link a:hover{text-decoration:underline}
-    </style></head><body>
-    <div class="box">
-        <h2>📝 Student Registration</h2>
-        <p class="sub">👨‍🏫 Buddika Wijesundara | Chemistry</p>
-        <form action="/register" method="POST">
-            <div class="input-group">
-                <input type="text" name="fullName" placeholder="Full Name" required>
-            </div>
-            <div class="input-group">
-                <input type="email" name="email" placeholder="Email Address" required>
-            </div>
-            <div class="input-group">
-                <input type="tel" name="mobile" placeholder="Mobile Number (0771234567)" pattern="[0-9]{10,12}" required>
-            </div>
-            <div class="warn">⚠️ One Mobile Number = One Student ID Only</div>
-            <div class="info">🆔 Auto Student ID: BC-1001, BC-1002...</div>
-            <div class="input-group">
-                <input type="password" name="password" id="regPassword" placeholder="Password (min 6 characters)" minlength="6" required>
-                <span class="toggle-password" onclick="togglePassword('regPassword', this)">👁️</span>
-            </div>
-            <button type="submit">📝 Register</button>
-        </form>
-        <div class="link"><a href="/login">Already have account? Login</a></div>
-        <div class="link"><a href="/">← Home</a></div>
-    </div>
-    <script>
-        function togglePassword(id, icon) {
-            var input = document.getElementById(id);
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.textContent = '🙈';
-            } else {
-                input.type = 'password';
-                icon.textContent = '👁️';
-            }
-        }
-    </script>
-    </body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Register - Buddika Wijesundara</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:450px}h2{text-align:center;color:#1a237e;margin-bottom:5px;font-size:22px}.sub{text-align:center;color:#666;margin-bottom:20px;font-size:14px}.input-group{position:relative;margin:8px 0}.input-group input{width:100%;padding:14px 45px 14px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}.input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}.input-group input[type="text"],.input-group input[type="email"],.input-group input[type="tel"]{padding-right:14px}.toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}.toggle-password:hover{color:#1a237e}.warn{background:#fff3cd;color:#856404;padding:10px;border-radius:5px;font-size:13px;margin:10px 0;text-align:center;border:1px solid #ffc107}.info{background:#e3f2fd;color:#1565c0;padding:10px;border-radius:5px;font-size:13px;margin:10px 0;text-align:center}button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.3s}button:hover{background:#218838;transform:translateY(-2px)}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.link a:hover{text-decoration:underline}</style></head><body><div class="box"><h2>📝 Student Registration</h2><p class="sub">👨‍🏫 Buddika Wijesundara | Chemistry</p><form action="/register" method="POST"><div class="input-group"><input type="text" name="fullName" placeholder="Full Name" required></div><div class="input-group"><input type="email" name="email" placeholder="Email Address" required></div><div class="input-group"><input type="tel" name="mobile" placeholder="Mobile Number (0771234567)" pattern="[0-9]{10,12}" required></div><div class="warn">⚠️ One Mobile Number = One Student ID Only</div><div class="info">🆔 Auto Student ID: BC-1001, BC-1002...</div><div class="input-group"><input type="password" name="password" id="regPassword" placeholder="Password (min 6 characters)" minlength="6" required><span class="toggle-password" onclick="togglePassword('regPassword', this)">👁️</span></div><button type="submit">📝 Register</button></form><div class="link"><a href="/login">Already have account? Login</a></div><div class="link"><a href="/">← Home</a></div></div><script>function togglePassword(id,icon){var input=document.getElementById(id);if(input.type==='password'){input.type='text';icon.textContent='🙈'}else{input.type='password';icon.textContent='👁️'}}</script></body></html>`);
 });
 
 // ============================================
@@ -144,67 +88,16 @@ app.post('/register', async (req, res) => {
         const sid = 'BC-' + num;
         const hash = await bcrypt.hash(password, 12);
         await db.query(`INSERT INTO users (student_id, username, email, password, full_name, mobile_number, role, is_active) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, { bind: [sid, email.split('@')[0] + '_' + Date.now(), email, hash, fullName, mobile, 'student', true] });
-        res.send(`<!DOCTYPE html><html><head><title>Success!</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.card{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:480px;width:100%;text-align:center}.icon{font-size:70px;margin-bottom:20px}h1{color:#28a745;font-size:24px;margin-bottom:10px}.id-box{font-size:36px;font-weight:bold;color:#1a237e;background:#f0f0f0;padding:15px;border-radius:10px;margin:20px 0}.success{background:#d4edda;color:#155724;padding:15px;border-radius:8px;margin:20px 0;font-size:14px}.warn{background:#fff3cd;color:#856404;padding:15px;border-radius:8px;margin:20px 0;font-size:14px}.btn{display:inline-block;padding:14px 30px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px}</style></head><body><div class="card"><div class="icon">🎉</div><h1>Registration Successful!</h1><div class="id-box">🆔 ${sid}</div><div class="success">✅ Name: ${fullName}<br>✅ Email: ${email}<br>✅ Mobile: ${mobile}</div><div class="warn">⚠️ Save your Student ID!<br>Send payment receipt with Student ID via WhatsApp.</div><a href="/login" class="btn">🔐 Login Now</a><a href="/" class="btn">🏠 Home</a></div></body></html>`);
+        res.send(`<!DOCTYPE html><html><head><title>Success!</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.card{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:480px;width:100%;text-align:center}.icon{font-size:70px;margin-bottom:20px}h1{color:#28a745;font-size:24px;margin-bottom:10px}.id-box{font-size:36px;font-weight:bold;color:#1a237e;background:#f0f0f0;padding:15px;border-radius:10px;margin:20px 0;letter-spacing:2px}.success{background:#d4edda;color:#155724;padding:15px;border-radius:8px;margin:20px 0;font-size:14px}.warn{background:#fff3cd;color:#856404;padding:15px;border-radius:8px;margin:20px 0;font-size:14px}.btn{display:inline-block;padding:14px 30px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px}</style></head><body><div class="card"><div class="icon">🎉</div><h1>Registration Successful!</h1><div class="id-box">🆔 ${sid}</div><div class="success">✅ Name: ${fullName}<br>✅ Email: ${email}<br>✅ Mobile: ${mobile}</div><div class="warn">⚠️ Save your Student ID!<br>Send payment receipt with Student ID via WhatsApp.</div><a href="/login" class="btn">🔐 Login Now</a><a href="/" class="btn">🏠 Home</a></div></body></html>`);
     } catch (e) { res.send(`<script>alert('Error: ${e.message}');window.location.href='/register'</script>`); }
 });
 
 // ============================================
-// LOGIN GET (with Password Show/Hide)
+// LOGIN GET (with 👁️ Password Show/Hide)
 // ============================================
 app.get('/login', (req, res) => {
     if (req.session && req.session.isLoggedIn) return res.redirect('/student/dashboard');
-    res.send(`<!DOCTYPE html><html><head><title>Login - Buddika Wijesundara</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
-        .box{background:white;padding:40px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:420px}
-        h2{text-align:center;color:#1a237e;margin-bottom:5px;font-size:22px}
-        .sub{text-align:center;color:#666;margin-bottom:25px;font-size:14px}
-        .input-group{position:relative;margin:12px 0}
-        .input-group input{width:100%;padding:14px 45px 14px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}
-        .input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}
-        .toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}
-        .toggle-password:hover{color:#1a237e}
-        button{width:100%;padding:14px;background:#1a237e;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:15px;transition:0.3s}
-        button:hover{background:#0d1457;transform:translateY(-2px)}
-        .link{text-align:center;margin-top:15px}
-        .link a{color:#1a237e;text-decoration:none;font-size:14px}
-        .link a:hover{text-decoration:underline}
-        .forgot{text-align:right;margin-top:5px}
-        .forgot a{color:#dc3545;font-size:13px;text-decoration:none}
-        .forgot a:hover{text-decoration:underline}
-        .footer{text-align:center;margin-top:20px;font-size:11px;color:#999}
-    </style></head><body>
-    <div class="box">
-        <h2>🔐 Student Login</h2>
-        <p class="sub">Buddika Wijesundara | Chemistry</p>
-        <form action="/login" method="POST">
-            <div class="input-group">
-                <input type="text" name="username" placeholder="Email or Username" required>
-            </div>
-            <div class="input-group">
-                <input type="password" name="password" id="loginPassword" placeholder="Password" required>
-                <span class="toggle-password" onclick="togglePassword('loginPassword', this)">👁️</span>
-            </div>
-            <div class="forgot"><a href="/forgot-password">Forgot Password?</a></div>
-            <button type="submit">Login</button>
-        </form>
-        <div class="link"><a href="/register">New Student? Register</a></div>
-        <div class="link"><a href="/">← Home</a></div>
-        <div class="footer">© 2026 Buddika Wijesundara</div>
-    </div>
-    <script>
-        function togglePassword(id, icon) {
-            var input = document.getElementById(id);
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.textContent = '🙈';
-            } else {
-                input.type = 'password';
-                icon.textContent = '👁️';
-            }
-        }
-    </script>
-    </body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Login - Buddika Wijesundara</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:40px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:420px}h2{text-align:center;color:#1a237e;margin-bottom:5px;font-size:22px}.sub{text-align:center;color:#666;margin-bottom:25px;font-size:14px}.input-group{position:relative;margin:12px 0}.input-group input{width:100%;padding:14px 45px 14px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}.input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}.toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}.toggle-password:hover{color:#1a237e}button{width:100%;padding:14px;background:#1a237e;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:15px;transition:0.3s}button:hover{background:#0d1457;transform:translateY(-2px)}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.link a:hover{text-decoration:underline}.forgot{text-align:right;margin-top:5px}.forgot a{color:#dc3545;font-size:13px;text-decoration:none}.forgot a:hover{text-decoration:underline}.footer{text-align:center;margin-top:20px;font-size:11px;color:#999}</style></head><body><div class="box"><h2>🔐 Student Login</h2><p class="sub">Buddika Wijesundara | Chemistry</p><form action="/login" method="POST"><div class="input-group"><input type="text" name="username" placeholder="Email or Username" required></div><div class="input-group"><input type="password" name="password" id="loginPassword" placeholder="Password" required><span class="toggle-password" onclick="togglePassword('loginPassword', this)">👁️</span></div><div class="forgot"><a href="/forgot-password">Forgot Password?</a></div><button type="submit">Login</button></form><div class="link"><a href="/register">New Student? Register</a></div><div class="link"><a href="/">← Home</a></div><div class="footer">© 2026 Buddika Wijesundara</div></div><script>function togglePassword(id,icon){var input=document.getElementById(id);if(input.type==='password'){input.type='text';icon.textContent='🙈'}else{input.type='password';icon.textContent='👁️'}}</script></body></html>`);
 });
 
 // ============================================
@@ -235,7 +128,7 @@ app.post('/login', async (req, res) => {
 // FORGOT PASSWORD - GET
 // ============================================
 app.get('/forgot-password', (req, res) => {
-    res.send(`<!DOCTYPE html><html><head><title>Forgot Password</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px}h2{text-align:center;color:#1a237e;margin-bottom:10px}p{text-align:center;color:#666;margin-bottom:20px;font-size:14px}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:16px}input:focus{border-color:#1a237e;outline:none}button{width:100%;padding:14px;background:#dc3545;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#c82333}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.info{background:#e3f2fd;color:#1565c0;padding:12px;border-radius:8px;font-size:13px;margin:10px 0;text-align:center}</style></head><body><div class="box"><h2>🔑 Forgot Password?</h2><p>Enter your email to reset password</p><form action="/forgot-password" method="POST"><input type="email" name="email" placeholder="Your Email Address" required><button type="submit">Send Verification Code</button></form><div class="info">📧 Verification code will be sent to your email</div><div class="link"><a href="/login">← Back to Login</a></div></div></body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Forgot Password</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:420px}h2{text-align:center;color:#1a237e;margin-bottom:10px;font-size:22px}p{text-align:center;color:#666;margin-bottom:20px;font-size:14px}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}button{width:100%;padding:14px;background:#dc3545;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.3s}button:hover{background:#c82333;transform:translateY(-2px)}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.info{background:#e3f2fd;color:#1565c0;padding:12px;border-radius:8px;font-size:13px;margin:10px 0;text-align:center}</style></head><body><div class="box"><h2>🔑 Forgot Password?</h2><p>Enter your email to receive verification code</p><form action="/forgot-password" method="POST"><input type="email" name="email" placeholder="Your Email Address" required><button type="submit">📧 Send Verification Code</button></form><div class="info">📧 Verification code will be sent to your email</div><div class="link"><a href="/login">← Back to Login</a></div></div></body></html>`);
 });
 
 // ============================================
@@ -259,44 +152,30 @@ app.post('/forgot-password', async (req, res) => {
         
         await db.query(`UPDATE users SET reset_token=$1, reset_token_expires=$2, verification_code=$3 WHERE email=$4`, { bind: [token, expires, code, email] });
         
-        // Send Email
+        // Send Email via SMTP
         try {
             const nodemailer = require('nodemailer');
             const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_USER || 'your-email@gmail.com',
-                    pass: process.env.EMAIL_PASS || 'your-password'
-                }
+                host: process.env.EMAIL_HOST || 'smtp-relay.brevo.com',
+                port: parseInt(process.env.EMAIL_PORT || '587'),
+                secure: false,
+                auth: { user: process.env.EMAIL_USER || '', pass: process.env.EMAIL_PASS || '' }
             });
             
             await transporter.sendMail({
-                from: `"Buddika Wijesundara LMS" <${process.env.EMAIL_USER}>`,
+                from: `"Buddika Wijesundara LMS" <${process.env.EMAIL_FROM || 'noreply@chemistry.lk'}>`,
                 to: email,
-                subject: 'Password Reset Verification Code',
-                html: `
-                    <div style="max-width:500px;margin:0 auto;padding:30px;font-family:Arial,sans-serif;background:#f5f5f5;border-radius:10px">
-                        <h2 style="color:#1a237e;text-align:center">🔑 Password Reset</h2>
-                        <p style="color:#666;text-align:center">Your verification code:</p>
-                        <div style="background:#1a237e;color:white;padding:20px;border-radius:10px;text-align:center;font-size:32px;font-weight:bold;letter-spacing:8px;margin:20px 0">${code}</div>
-                        <p style="color:#666;text-align:center;font-size:13px">This code expires in 1 hour.</p>
-                        <p style="color:#999;text-align:center;font-size:12px;margin-top:20px">If you didn't request this, ignore this email.</p>
-                        <hr style="border:1px solid #e0e0e0;margin:20px 0">
-                        <p style="text-align:center;color:#1a237e;font-weight:bold">👨‍🏫 Buddika Wijesundara<br>Advanced Level Chemistry</p>
-                    </div>
-                `
+                subject: 'Password Reset Code - Buddika Wijesundara LMS',
+                html: `<div style="max-width:500px;margin:0 auto;padding:30px;font-family:Arial,sans-serif;background:#f5f5f5;border-radius:10px"><div style="text-align:center;font-size:50px;margin-bottom:20px">⚗️</div><h2 style="color:#1a237e;text-align:center">Password Reset Code</h2><p style="color:#666;text-align:center;font-size:16px">Hello, ${users[0].full_name}!</p><p style="color:#666;text-align:center">Your verification code is:</p><div style="background:#1a237e;color:white;padding:20px;border-radius:10px;text-align:center;font-size:36px;font-weight:bold;letter-spacing:10px;margin:20px 0">${code}</div><p style="color:#666;text-align:center;font-size:13px">⚠️ This code expires in 1 hour.</p><p style="color:#999;text-align:center;font-size:12px;margin-top:30px">If you didn't request this, please ignore.</p><hr style="border:1px solid #e0e0e0;margin:20px 0"><p style="text-align:center;color:#1a237e;font-weight:bold">👨‍🏫 Buddika Wijesundara<br>Advanced Level Chemistry LMS</p></div>`
             });
             console.log('✅ Email sent to:', email);
-        } catch(emailErr) {
-            console.error('Email send error:', emailErr.message);
-        }
+        } catch(emailErr) { console.error('❌ Email error:', emailErr.message); }
         
-        res.send(`<!DOCTYPE html><html><head><title>Verify Email</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:430px;text-align:center}h2{color:#1a237e;margin-bottom:10px}.sub{color:#666;font-size:14px;margin-bottom:20px}.info{background:#e3f2fd;color:#1565c0;padding:12px;border-radius:8px;font-size:13px;margin:15px 0}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:18px;text-align:center;letter-spacing:5px}input:focus{border-color:#1a237e;outline:none}button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#218838}.link{margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.email-info{color:#1a237e;font-weight:bold;font-size:16px;margin:10px 0}</style></head><body><div class="box"><h2>📧 Check Your Email</h2><p class="sub">Verification code sent to:</p><p class="email-info">${email}</p><div class="info">📋 Enter the 6-digit code from your email.<br>⚠️ Code expires in 1 hour.</div><form action="/verify-code" method="POST"><input type="hidden" name="token" value="${token}"><input type="hidden" name="email" value="${email}"><input type="text" name="code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" required><button type="submit">✅ Verify & Reset Password</button></form><div class="link"><a href="/forgot-password">← Try Different Email</a></div></div></body></html>`);
+        res.send(`<!DOCTYPE html><html><head><title>Check Email</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.3);width:100%;max-width:430px;text-align:center}h2{color:#1a237e;margin-bottom:10px;font-size:22px}.sub{color:#666;font-size:14px;margin-bottom:20px}.info{background:#e3f2fd;color:#1565c0;padding:12px;border-radius:8px;font-size:13px;margin:15px 0}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:18px;text-align:center;letter-spacing:5px;transition:0.3s}input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.3s}button:hover{background:#218838;transform:translateY(-2px)}.link{margin-top:15px}.link a{color:white;text-decoration:none;font-size:14px;background:rgba(255,255,255,0.2);padding:8px 20px;border-radius:20px}.email-info{color:#1a237e;font-weight:bold;font-size:16px;margin:10px 0}</style></head><body><div class="box"><h2>📧 Check Your Email!</h2><p class="sub">Verification code sent to:</p><p class="email-info">${email}</p><div class="info">📋 Please check your email inbox (and spam)<br>Enter the 6-digit code below<br>⚠️ Code expires in 1 hour</div><form action="/verify-code" method="POST"><input type="hidden" name="token" value="${token}"><input type="hidden" name="email" value="${email}"><input type="text" name="code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required autofocus><button type="submit">✅ Verify & Reset Password</button></form><div class="link" style="margin-top:20px;"><a href="/login">← Back to Login</a></div></div></body></html>`);
         
-    } catch (e) {
-        res.send(`<script>alert('Error: ${e.message}');window.location.href='/forgot-password'</script>`);
-    }
+    } catch (e) { res.send(`<script>alert('Error: ${e.message}');window.location.href='/forgot-password'</script>`); }
 });
+
 // ============================================
 // VERIFY CODE - POST
 // ============================================
@@ -304,83 +183,25 @@ app.post('/verify-code', async (req, res) => {
     try {
         const { token, email, code } = req.body;
         if (!token || !email || !code) return res.send(`<script>alert('All fields required!');window.location.href='/forgot-password'</script>`);
-        
         if (dbConnected) {
             const [users] = await db.query(`SELECT * FROM users WHERE email=$1 AND reset_token=$2 AND verification_code=$3 AND reset_token_expires > NOW()`, { bind: [email, token, code] });
-            
-            if (users.length === 0) {
-                return res.send(`<!DOCTYPE html><html><head><title>Invalid Code</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center}h2{color:#dc3545;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>❌ Invalid Code!</h2><p>The verification code is incorrect or expired.</p><a href="/forgot-password" class="btn">🔄 Try Again</a></div></body></html>`);
-            }
+            if (users.length === 0) return res.send(`<!DOCTYPE html><html><head><title>Invalid</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center}h2{color:#dc3545;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>❌ Invalid Code!</h2><p>The verification code is incorrect or expired.</p><a href="/forgot-password" class="btn">🔄 Try Again</a></div></body></html>`);
         }
-        
         res.redirect(`/reset-password?token=${token}&verified=true`);
-        
-    } catch (e) {
-        res.send(`<script>alert('Error: ${e.message}');window.location.href='/forgot-password'</script>`);
-    }
+    } catch (e) { res.send(`<script>alert('Error: ${e.message}');window.location.href='/forgot-password'</script>`); }
 });
 
 // ============================================
-// RESET PASSWORD - GET (with Show/Hide)
+// RESET PASSWORD - GET (with 👁️ Show/Hide)
 // ============================================
 app.get('/reset-password', async (req, res) => {
     const { token, verified } = req.query;
     if (!token || !verified) return res.redirect('/forgot-password');
+    if (dbConnected) { const [users] = await db.query(`SELECT * FROM users WHERE reset_token=$1 AND reset_token_expires > NOW()`, { bind: [token] }); if (users.length === 0) return res.send(`<script>alert('Invalid or expired link!');window.location.href='/forgot-password'</script>`); }
     
-    if (dbConnected) {
-        const [users] = await db.query(`SELECT * FROM users WHERE reset_token=$1 AND reset_token_expires > NOW()`, { bind: [token] });
-        if (users.length === 0) return res.send(`<script>alert('Invalid or expired link!');window.location.href='/forgot-password'</script>`);
-    }
-    
-    res.send(`<!DOCTYPE html><html><head><title>Reset Password</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#28a745,#218838);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
-        .box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.2);width:100%;max-width:420px}
-        h2{color:#28a745;margin-bottom:5px;text-align:center;font-size:22px}
-        .sub{text-align:center;color:#666;margin-bottom:20px;font-size:14px}
-        .verified{background:#d4edda;color:#155724;padding:10px;border-radius:8px;text-align:center;margin-bottom:20px;font-size:13px;font-weight:bold}
-        .input-group{position:relative;margin:10px 0}
-        .input-group input{width:100%;padding:14px 45px 14px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}
-        .input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}
-        .toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}
-        .toggle-password:hover{color:#1a237e}
-        button{width:100%;padding:14px;background:#1a237e;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.3s}
-        button:hover{background:#0d1457;transform:translateY(-2px)}
-        .link{text-align:center;margin-top:15px}
-        .link a{color:#1a237e;text-decoration:none;font-size:14px}
-    </style></head><body>
-    <div class="box">
-        <h2>🔑 Reset Password</h2>
-        <p class="sub">✅ Email Verified Successfully!</p>
-        <div class="verified">✅ Verification Successful - Enter New Password</div>
-        <form action="/reset-password" method="POST">
-            <input type="hidden" name="token" value="${token}">
-            <div class="input-group">
-                <input type="password" name="password" id="newPass1" placeholder="New Password (min 6)" minlength="6" required>
-                <span class="toggle-password" onclick="togglePassword('newPass1', this)">👁️</span>
-            </div>
-            <div class="input-group">
-                <input type="password" name="confirmPassword" id="newPass2" placeholder="Confirm Password" minlength="6" required>
-                <span class="toggle-password" onclick="togglePassword('newPass2', this)">👁️</span>
-            </div>
-            <button type="submit">🔐 Update Password</button>
-        </form>
-        <div class="link"><a href="/login">← Back to Login</a></div>
-    </div>
-    <script>
-        function togglePassword(id, icon) {
-            var input = document.getElementById(id);
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.textContent = '🙈';
-            } else {
-                input.type = 'password';
-                icon.textContent = '👁️';
-            }
-        }
-    </script>
-    </body></html>`);
-});v
+    res.send(`<!DOCTYPE html><html><head><title>Reset Password</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#28a745,#218838);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.2);width:100%;max-width:420px}h2{color:#28a745;margin-bottom:5px;text-align:center;font-size:22px}.sub{text-align:center;color:#666;margin-bottom:20px;font-size:14px}.verified{background:#d4edda;color:#155724;padding:10px;border-radius:8px;text-align:center;margin-bottom:20px;font-size:13px;font-weight:bold}.input-group{position:relative;margin:10px 0}.input-group input{width:100%;padding:14px 45px 14px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}.input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}.toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}.toggle-password:hover{color:#1a237e}button{width:100%;padding:14px;background:#1a237e;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.3s}button:hover{background:#0d1457;transform:translateY(-2px)}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}</style></head><body><div class="box"><h2>🔑 Reset Password</h2><p class="sub">✅ Email Verified Successfully!</p><div class="verified">✅ Verification Successful - Enter New Password</div><form action="/reset-password" method="POST"><input type="hidden" name="token" value="${token}"><div class="input-group"><input type="password" name="password" id="newPass1" placeholder="New Password (min 6)" minlength="6" required><span class="toggle-password" onclick="togglePassword('newPass1', this)">👁️</span></div><div class="input-group"><input type="password" name="confirmPassword" id="newPass2" placeholder="Confirm Password" minlength="6" required><span class="toggle-password" onclick="togglePassword('newPass2', this)">👁️</span></div><button type="submit">🔐 Update Password</button></form><div class="link"><a href="/login">← Back to Login</a></div></div><script>function togglePassword(id,icon){var input=document.getElementById(id);if(input.type==='password'){input.type='text';icon.textContent='🙈'}else{input.type='password';icon.textContent='👁️'}}</script></body></html>`);
+});
+
 // ============================================
 // RESET PASSWORD - POST
 // ============================================
@@ -390,20 +211,9 @@ app.post('/reset-password', async (req, res) => {
         if (!token || !password || !confirmPassword) return res.send(`<script>alert('All fields required!');window.location.href='/reset-password?token=${token}&verified=true'</script>`);
         if (password !== confirmPassword) return res.send(`<script>alert('Passwords do not match!');window.location.href='/reset-password?token=${token}&verified=true'</script>`);
         if (password.length < 6) return res.send(`<script>alert('Password must be at least 6 characters!');window.location.href='/reset-password?token=${token}&verified=true'</script>`);
-        
-        if (dbConnected) {
-            const [users] = await db.query(`SELECT * FROM users WHERE reset_token=$1 AND reset_token_expires > NOW()`, { bind: [token] });
-            if (users.length === 0) return res.send(`<script>alert('Invalid or expired link!');window.location.href='/forgot-password'</script>`);
-            
-            const hash = await bcrypt.hash(password, 12);
-            await db.query(`UPDATE users SET password=$1, reset_token=NULL, reset_token_expires=NULL, verification_code=NULL WHERE reset_token=$2`, { bind: [hash, token] });
-        }
-        
-        res.send(`<!DOCTYPE html><html><head><title>Password Updated</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#28a745,#218838);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.2);width:100%;max-width:400px;text-align:center}h2{color:#28a745;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>✅ Password Updated!</h2><p>Your password has been changed successfully.</p><a href="/login" class="btn">🔐 Login Now</a></div></body></html>`);
-        
-    } catch (e) {
-        res.send(`<script>alert('Error: ${e.message}');window.location.href='/login'</script>`);
-    }
+        if (dbConnected) { const [users] = await db.query(`SELECT * FROM users WHERE reset_token=$1 AND reset_token_expires > NOW()`, { bind: [token] }); if (users.length === 0) return res.send(`<script>alert('Invalid or expired!');window.location.href='/forgot-password'</script>`); const hash = await bcrypt.hash(password, 12); await db.query(`UPDATE users SET password=$1, reset_token=NULL, reset_token_expires=NULL, verification_code=NULL WHERE reset_token=$2`, { bind: [hash, token] }); }
+        res.send(`<!DOCTYPE html><html><head><title>Updated</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#28a745,#218838);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.2);width:100%;max-width:400px;text-align:center}h2{color:#28a745;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>✅ Password Updated!</h2><p>Your password has been changed successfully.</p><a href="/login" class="btn">🔐 Login Now</a></div></body></html>`);
+    } catch (e) { res.send(`<script>alert('Error: ${e.message}');window.location.href='/login'</script>`); }
 });
 
 // ============================================
@@ -412,14 +222,14 @@ app.post('/reset-password', async (req, res) => {
 app.get('/student/dashboard', studentAuth, async (req, res) => {
     let hasActiveEnrollment = false;
     if (dbConnected) { try { const [e] = await db.query(`SELECT * FROM enrollments WHERE user_id=$1 AND status='active' AND payment_status='verified' LIMIT 1`, { bind: [req.session.userId] }); hasActiveEnrollment = e.length > 0; } catch(e) {} }
-    res.send(`<!DOCTYPE html><html><head><title>Dashboard</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.logout{background:#dc3545;color:white;padding:8px 18px;border-radius:5px;text-decoration:none;font-size:13px}.container{max-width:700px;margin:30px auto;padding:20px}.card{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:20px}.id-badge{font-size:28px;font-weight:bold;color:#1a237e;background:#f0f0f0;padding:12px 25px;border-radius:10px;display:inline-block;margin:15px 0}.info-row{margin:12px 0;font-size:16px;color:#333;padding:10px;background:#f9f9f9;border-radius:5px}.btn-courses{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px 5px}.btn-pay{background:#25D366}.status-badge{padding:5px 15px;border-radius:20px;font-size:13px;font-weight:bold;display:inline-block;margin:10px 0}.paid{background:#d4edda;color:#155724}.unpaid{background:#f8d7da;color:#721c24}</style></head><body><div class="header"><h1>👨‍🎓 Student Dashboard</h1><a href="/logout" class="logout">🚪 Logout</a></div><div class="container"><div class="card"><h2 style="color:#1a237e">Welcome, ${req.session.userName}!</h2><div class="id-badge">🆔 ${req.session.studentId}</div><div class="info-row"><strong>📱 Mobile:</strong> ${req.session.userMobile || 'N/A'}</div><div class="info-row"><strong>📚 Course:</strong> Advanced Level Chemistry</div><div class="info-row"><strong>👨‍🏫 Teacher:</strong> Buddika Wijesundara</div><div class="info-row"><strong>Payment Status:</strong> <span class="status-badge ${hasActiveEnrollment ? 'paid' : 'unpaid'}">${hasActiveEnrollment ? '✅ Paid & Active' : '❌ Payment Required'}</span></div><a href="/student/courses" class="btn-courses">📚 View Courses</a><a href="/student/payment" class="btn-courses btn-pay">💰 Make Payment</a></div></div></body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Dashboard</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.header h1{font-size:18px}.logout{background:#dc3545;color:white;padding:8px 18px;border-radius:5px;text-decoration:none;font-size:13px}.container{max-width:700px;margin:30px auto;padding:20px}.card{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:20px}.id-badge{font-size:28px;font-weight:bold;color:#1a237e;background:#f0f0f0;padding:12px 25px;border-radius:10px;display:inline-block;margin:15px 0;letter-spacing:2px}.info-row{margin:12px 0;font-size:16px;color:#333;padding:10px;background:#f9f9f9;border-radius:5px}.btn-courses{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px 5px;transition:0.3s}.btn-courses:hover{transform:translateY(-2px)}.btn-pay{background:#25D366}.status-badge{padding:5px 15px;border-radius:20px;font-size:13px;font-weight:bold;display:inline-block;margin:10px 0}.paid{background:#d4edda;color:#155724}.unpaid{background:#f8d7da;color:#721c24}</style></head><body><div class="header"><h1>👨‍🎓 Student Dashboard</h1><a href="/logout" class="logout">🚪 Logout</a></div><div class="container"><div class="card"><h2 style="color:#1a237e">Welcome, ${req.session.userName}!</h2><div class="id-badge">🆔 ${req.session.studentId}</div><div class="info-row"><strong>📱 Mobile:</strong> ${req.session.userMobile || 'N/A'}</div><div class="info-row"><strong>📚 Course:</strong> Advanced Level Chemistry</div><div class="info-row"><strong>👨‍🏫 Teacher:</strong> Buddika Wijesundara</div><div class="info-row"><strong>Payment Status:</strong> <span class="status-badge ${hasActiveEnrollment ? 'paid' : 'unpaid'}">${hasActiveEnrollment ? '✅ Paid & Active' : '❌ Payment Required'}</span></div><a href="/student/courses" class="btn-courses">📚 View Courses</a><a href="/student/payment" class="btn-courses btn-pay">💰 Make Payment</a></div></div></body></html>`);
 });
 
 // ============================================
 // STUDENT - PAYMENT PAGE
 // ============================================
 app.get('/student/payment', studentAuth, (req, res) => {
-    res.send(`<!DOCTYPE html><html><head><title>Payment</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.card{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);max-width:500px;width:100%;text-align:center}h2{color:#1a237e;margin-bottom:15px}.bank-details{background:#f9f9f9;padding:20px;border-radius:10px;margin:20px 0;text-align:left}.bank-details p{margin:8px 0;font-size:15px}.highlight{background:#fff3cd;color:#856404;padding:15px;border-radius:8px;margin:20px 0;font-size:14px}.btn-wa{display:inline-block;padding:14px 30px;background:#25D366;color:white;text-decoration:none;border-radius:10px;font-weight:bold;font-size:16px;margin:10px}.btn-back{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px}</style></head><body><div class="card"><h2>💰 Payment Details</h2><p style="color:#666;">Buddika Wijesundara - Chemistry LMS</p><div class="bank-details"><h3 style="color:#1a237e;margin-bottom:10px;">🏦 Bank Details</h3><p><strong>Bank:</strong> Sampath Bank</p><p><strong>Account Name:</strong> B Wijesundara</p><p><strong>Account Number:</strong> 1234567890</p><p><strong>Branch:</strong> Galle</p></div><div class="highlight"><strong>📱 Payment කළ පසු:</strong><br>1. Screenshot/Receipt එක ගන්න<br>2. පහත WhatsApp Button click කරන්න<br>3. Receipt + Student ID (${req.session.studentId}) send කරන්න</div><a href="https://wa.me/94771234567?text=Payment%20Receipt%20-%20Student%20ID:%20${req.session.studentId}%20-%20Name:%20${encodeURIComponent(req.session.userName)}" target="_blank" class="btn-wa">📱 Send Receipt via WhatsApp</a><br><a href="/student/dashboard" class="btn-back">← Back</a></div></body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Payment</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.card{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);max-width:500px;width:100%;text-align:center}h2{color:#1a237e;margin-bottom:15px}.bank-details{background:#f9f9f9;padding:20px;border-radius:10px;margin:20px 0;text-align:left}.bank-details p{margin:8px 0;font-size:15px}.highlight{background:#fff3cd;color:#856404;padding:15px;border-radius:8px;margin:20px 0;font-size:14px}.btn-wa{display:inline-block;padding:14px 30px;background:#25D366;color:white;text-decoration:none;border-radius:10px;font-weight:bold;font-size:16px;margin:10px;transition:0.3s}.btn-wa:hover{transform:translateY(-2px)}.btn-back{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px}</style></head><body><div class="card"><h2>💰 Payment Details</h2><p style="color:#666;">Buddika Wijesundara - Chemistry LMS</p><div class="bank-details"><h3 style="color:#1a237e;margin-bottom:10px;">🏦 Bank Details</h3><p><strong>Bank:</strong> Sampath Bank</p><p><strong>Account Name:</strong> B Wijesundara</p><p><strong>Account Number:</strong> 1234567890</p><p><strong>Branch:</strong> Galle</p></div><div class="highlight"><strong>📱 Payment කළ පසු:</strong><br>1. Screenshot/Receipt එක ගන්න<br>2. පහත WhatsApp Button click කරන්න<br>3. Receipt + Student ID (${req.session.studentId}) send කරන්න</div><a href="https://wa.me/94771234567?text=Payment%20Receipt%20-%20Student%20ID:%20${req.session.studentId}%20-%20Name:%20${encodeURIComponent(req.session.userName)}" target="_blank" class="btn-wa">📱 Send Receipt via WhatsApp</a><br><a href="/student/dashboard" class="btn-back">← Back</a></div></body></html>`);
 });
 
 // ============================================
@@ -430,7 +240,7 @@ app.get('/student/courses', studentAuth, async (req, res) => {
     if (dbConnected) { try { const [rows] = await db.query(`SELECT * FROM courses WHERE status='published' ORDER BY created_at DESC`); courses = rows; } catch(e) {} }
     let cc = '';
     if (courses.length > 0) { courses.forEach(c => { cc += `<div class="course-card"><h3>📚 ${c.title}</h3><p style="color:#666;">${c.description||''}</p><p style="font-size:13px;color:#999;">Price: Rs.${c.price||0}</p><a href="/student/courses/${c.id}/lessons" class="btn">📖 View Lessons</a></div>`; }); } else { cc = '<p style="text-align:center;color:#666;padding:30px;">No courses available yet.</p>'; }
-    res.send(`<!DOCTYPE html><html><head><title>Courses</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.logout{background:#dc3545;color:white;padding:8px 18px;border-radius:5px;text-decoration:none;font-size:13px}.container{max-width:900px;margin:25px auto;padding:0 20px}h2{color:#1a237e;margin-bottom:20px}.course-card{background:white;padding:20px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:15px}.course-card h3{color:#1a237e}.btn{display:inline-block;padding:10px 22px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-size:14px;font-weight:bold;margin-top:10px}</style></head><body><div class="header"><h1>👨‍🎓 ${req.session.userName}</h1><a href="/logout" class="logout">🚪 Logout</a></div><div class="container"><h2>📚 My Courses</h2>${cc}<div style="text-align:center;margin-top:20px;"><a href="/student/dashboard">← Dashboard</a></div></div></body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Courses</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.logout{background:#dc3545;color:white;padding:8px 18px;border-radius:5px;text-decoration:none;font-size:13px}.container{max-width:900px;margin:25px auto;padding:0 20px}h2{color:#1a237e;margin-bottom:20px}.course-card{background:white;padding:20px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:15px}.course-card h3{color:#1a237e}.btn{display:inline-block;padding:10px 22px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-size:14px;font-weight:bold;margin-top:10px;transition:0.3s}.btn:hover{background:#0d1457}</style></head><body><div class="header"><h1>👨‍🎓 ${req.session.userName}</h1><a href="/logout" class="logout">🚪 Logout</a></div><div class="container"><h2>📚 My Courses</h2>${cc}<div style="text-align:center;margin-top:20px;"><a href="/student/dashboard">← Dashboard</a></div></div></body></html>`);
 });
 
 // ============================================
@@ -449,70 +259,25 @@ app.get('/student/courses/:courseId/lessons', studentAuth, async (req, res) => {
     let ll = '';
     if (lessons.length > 0) { lessons.forEach(l => { ll += `<div class="lesson-card"><h3>📖 ${l.title}</h3><p class="topic-name">📚 ${l.topic_name || 'Chemistry'}</p><div class="actions">${l.zoom_link ? `<a href="${l.zoom_link}" target="_blank" class="action-box live-box"><span class="icon">📡</span><span class="label">Live Session</span><span class="desc">Join Zoom</span></a>` : `<div class="action-box live-box inactive"><span class="icon">📡</span><span class="label">Live</span><span class="desc">N/A</span></div>`}${l.video_url ? `<a href="${l.video_url}" target="_blank" class="action-box recording-box"><span class="icon">🎬</span><span class="label">Recording</span><span class="desc">Watch</span></a>` : `<div class="action-box recording-box inactive"><span class="icon">🎬</span><span class="label">Recording</span><span class="desc">N/A</span></div>`}</div></div>`; }); } else { ll = '<p style="text-align:center;color:#666;padding:30px;">No lessons yet.</p>'; }
     
-    res.send(`<!DOCTYPE html><html><head><title>${course.title}</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#28a745,#218838);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.badge{background:rgba(255,255,255,0.2);padding:5px 15px;border-radius:20px;font-size:13px}.back{color:white;text-decoration:none}.container{max-width:800px;margin:25px auto;padding:0 20px}h2{color:#1a237e;margin-bottom:5px}.topic{color:#666;margin-bottom:25px}.lesson-card{background:white;padding:25px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,0.08);margin-bottom:20px}.lesson-card h3{color:#1a237e}.topic-name{color:#2563eb;font-weight:bold;font-size:14px;margin-bottom:20px;background:#eff6ff;padding:8px 15px;border-radius:20px;display:inline-block}.actions{display:flex;gap:20px;flex-wrap:wrap}.action-box{flex:1;min-width:200px;padding:25px 20px;border-radius:12px;text-align:center;text-decoration:none;color:white;transition:0.3s;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}.action-box:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.15)}.live-box{background:linear-gradient(135deg,#dc3545,#c82333)}.recording-box{background:linear-gradient(135deg,#1a237e,#283593)}.inactive{opacity:0.5;pointer-events:none}.icon{font-size:40px}.label{font-size:18px;font-weight:bold}.desc{font-size:13px;opacity:0.9}</style></head><body><div class="header"><h1>📚 ${course.title}</h1><div><span class="badge">✅ Paid</span><a href="/student/courses" class="back" style="margin-left:15px;">← Courses</a></div></div><div class="container"><h2>Lessons</h2><p class="topic">👨‍🏫 Buddika Wijesundara</p>${ll}</div></body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>${course.title}</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#28a745,#218838);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.badge{background:rgba(255,255,255,0.2);padding:5px 15px;border-radius:20px;font-size:13px}.back{color:white;text-decoration:none}.container{max-width:800px;margin:25px auto;padding:0 20px}h2{color:#1a237e;margin-bottom:5px}.topic{color:#666;margin-bottom:25px}.lesson-card{background:white;padding:25px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,0.08);margin-bottom:20px}.lesson-card h3{color:#1a237e}.topic-name{color:#2563eb;font-weight:bold;font-size:14px;margin-bottom:20px;background:#eff6ff;padding:8px 15px;border-radius:20px;display:inline-block}.actions{display:flex;gap:20px;flex-wrap:wrap}.action-box{flex:1;min-width:200px;padding:25px 20px;border-radius:12px;text-align:center;text-decoration:none;color:white;transition:0.3s;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}.action-box:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.15)}.live-box{background:linear-gradient(135deg,#dc3545,#c82333)}.recording-box{background:linear-gradient(135deg,#1a237e,#283593)}.inactive{opacity:0.5;pointer-events:none}.icon{font-size:40px}.label{font-size:18px;font-weight:bold}.desc{font-size:13px;opacity:0.9}</style></head><body><div class="header"><h1>📚 ${course.title}</h1><div><span class="badge">✅ Paid</span><a href="/student/courses" class="back" style="margin-left:15px;">← Courses</a></div></div><div class="container"><h2>Lessons</h2><p class="topic">👨‍🏫 Buddika Wijesundara</p>${ll}</div></body></html>`);
 });
 
 // ============================================
-// ADMIN LOGIN GET (with Password Show/Hide)
+// ADMIN LOGIN GET (with 👁️ Password Show/Hide)
 // ============================================
 app.get('/admin/login', (req, res) => {
     if (req.session && req.session.isAdminLoggedIn) return res.redirect('/admin/dashboard');
     const err = req.query.error === '1' ? '❌ Wrong Username or Password!' : '';
-    res.send(`<!DOCTYPE html><html><head><title>Teacher Login</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#0d1457);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
-        .box{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.4);width:100%;max-width:420px}
-        .icon{text-align:center;font-size:60px;margin-bottom:20px}
-        h2{text-align:center;color:#1a237e;margin-bottom:5px;font-size:22px}
-        .sub{text-align:center;color:#666;margin-bottom:25px;font-size:14px}
-        .error{background:#f8d7da;color:#721c24;padding:12px;border-radius:8px;margin-bottom:20px;text-align:center;${err?'':'display:none'}}
-        .input-group{position:relative;margin:10px 0}
-        .input-group input{width:100%;padding:15px 45px 15px 15px;border:2px solid #e0e0e0;border-radius:10px;font-size:16px;transition:0.3s}
-        .input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}
-        .toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}
-        .toggle-password:hover{color:#1a237e}
-        button{width:100%;padding:15px;margin-top:15px;background:linear-gradient(135deg,#1a237e,#283593);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.3s}
-        button:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(26,35,126,0.3)}
-        .forgot{text-align:right;margin-top:5px}
-        .forgot a{color:#dc3545;font-size:13px;text-decoration:none}
-        .link{text-align:center;margin-top:20px}
-        .link a{color:#1a237e;text-decoration:none;font-size:14px}
-        .note{text-align:center;margin-top:20px;font-size:12px;color:#999;background:#f5f5f5;padding:10px;border-radius:8px}
-        .footer{text-align:center;margin-top:20px;font-size:11px;color:#999}
-    </style></head><body>
-    <div class="box">
-        <div class="icon">🔒</div>
-        <h2>👨‍🏫 Teacher Login</h2>
-        <p class="sub">Buddika Wijesundara | Chemistry LMS</p>
-        <div class="error">${err}</div>
-        <form action="/admin/login" method="POST">
-            <div class="input-group">
-                <input type="text" name="username" placeholder="👤 Username" required autofocus>
-            </div>
-            <div class="input-group">
-                <input type="password" name="password" id="adminPassword" placeholder="🔑 Password" required>
-                <span class="toggle-password" onclick="togglePassword('adminPassword', this)">👁️</span>
-            </div>
-            <div class="forgot"><a href="/forgot-password">Forgot Password?</a></div>
-            <button type="submit">🔐 Login</button>
-        </form>
-        <div class="note">🛡️ Authorized Teacher Only</div>
-        <div class="link"><a href="/">← Home</a></div>
-        <div class="footer">© 2026 Buddika Wijesundara</div>
-    </div>
-    <script>
-        function togglePassword(id, icon) {
-            var input = document.getElementById(id);
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.textContent = '🙈';
-            } else {
-                input.type = 'password';
-                icon.textContent = '👁️';
-            }
-        }
-    </script>
-    </body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Teacher Login</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#0d1457);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.4);width:100%;max-width:420px}.icon{text-align:center;font-size:60px;margin-bottom:20px}h2{text-align:center;color:#1a237e;margin-bottom:5px;font-size:22px}.sub{text-align:center;color:#666;margin-bottom:25px;font-size:14px}.error{background:#f8d7da;color:#721c24;padding:12px;border-radius:8px;margin-bottom:20px;text-align:center;${err?'':'display:none'}}.input-group{position:relative;margin:10px 0}.input-group input{width:100%;padding:15px 45px 15px 15px;border:2px solid #e0e0e0;border-radius:10px;font-size:16px;transition:0.3s}.input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}.toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}.toggle-password:hover{color:#1a237e}button{width:100%;padding:15px;margin-top:15px;background:linear-gradient(135deg,#1a237e,#283593);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.3s}button:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(26,35,126,0.3)}.forgot{text-align:right;margin-top:5px}.forgot a{color:#dc3545;font-size:13px;text-decoration:none}.link{text-align:center;margin-top:20px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.note{text-align:center;margin-top:20px;font-size:12px;color:#999;background:#f5f5f5;padding:10px;border-radius:8px}.footer{text-align:center;margin-top:20px;font-size:11px;color:#999}</style></head><body><div class="box"><div class="icon">🔒</div><h2>👨‍🏫 Teacher Login</h2><p class="sub">Buddika Wijesundara | Chemistry LMS</p><div class="error">${err}</div><form action="/admin/login" method="POST"><div class="input-group"><input type="text" name="username" placeholder="👤 Username" required autofocus></div><div class="input-group"><input type="password" name="password" id="adminPassword" placeholder="🔑 Password" required><span class="toggle-password" onclick="togglePassword('adminPassword', this)">👁️</span></div><div class="forgot"><a href="/forgot-password">Forgot Password?</a></div><button type="submit">🔐 Login</button></form><div class="note">🛡️ Authorized Teacher Only</div><div class="link"><a href="/">← Home</a></div><div class="footer">© 2026 Buddika Wijesundara</div></div><script>function togglePassword(id,icon){var input=document.getElementById(id);if(input.type==='password'){input.type='text';icon.textContent='🙈'}else{input.type='password';icon.textContent='👁️'}}</script></body></html>`);
+});
+
+app.post('/admin/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === ADMIN.username && password === ADMIN.password) {
+        req.session.isAdminLoggedIn = true; req.session.adminName = ADMIN.name;
+        return res.redirect('/admin/dashboard');
+    }
+    return res.redirect('/admin/login?error=1');
 });
 
 // ============================================
@@ -522,7 +287,7 @@ app.get('/admin/dashboard', adminAuth, async (req, res) => {
     let total = 0;
     if (dbConnected) { try { const [c] = await db.query(`SELECT COUNT(*) as count FROM users WHERE role='student'`); total = c[0]?.count || 0; } catch(e) {} }
     const dbStatus = dbConnected ? '<span style="color:#28a745">✅ Connected</span>' : '<span style="color:#dc3545">❌ Not Connected</span>';
-    res.send(`<!DOCTYPE html><html><head><title>Admin</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.logout{background:#dc3545;color:white;padding:8px 18px;border-radius:5px;text-decoration:none;font-size:13px}.container{max-width:1100px;margin:25px auto;padding:0 20px}.teacher-card{background:white;padding:20px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:20px;display:flex;align-items:center;gap:15px}.avatar{width:55px;height:55px;background:#1a237e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:white}.db-status{background:white;padding:12px 20px;border-radius:8px;margin-bottom:20px;font-size:14px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:25px}.card{background:white;padding:20px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.08);text-align:center}.card h3{color:#666;font-size:13px}.card .num{font-size:32px;font-weight:bold;color:#1a237e;margin:8px 0}.menu{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:25px}.menu a{padding:12px 22px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-size:14px;font-weight:bold}.menu a:hover{background:#0d1457}.green{background:#28a745!important}.warning{background:#ffc107!important;color:#333!important}</style></head><body><div class="header"><h1>👨‍🏫 Buddika Wijesundara</h1><a href="/admin/logout" class="logout">🚪 Logout</a></div><div class="container"><div class="db-status">Database: ${dbStatus}</div><div class="teacher-card"><div class="avatar">👨‍🏫</div><div><h2 style="color:#1a237e">Buddika Wijesundara</h2><p style="color:#666">Advanced Level Chemistry</p></div></div><div class="cards"><div class="card"><h3>📊 Total Students</h3><div class="num">${total}</div></div><div class="card"><h3>✅ Active</h3><div class="num">${total}</div></div><div class="card"><h3>⏳ Pending</h3><div class="num">0</div></div><div class="card"><h3>🚨 Inactive</h3><div class="num">0</div></div></div><div class="menu"><a href="/admin/courses" class="green">📚 Courses</a><a href="/admin/enrollments">💰 Payments</a><a href="/admin/students">👥 Students</a><a href="/admin/inactivity" class="warning">🚨 Inactive</a><a href="/admin/analytics">📊 Analytics</a><a href="/">🏠 Home</a></div></div></body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Admin</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.logout{background:#dc3545;color:white;padding:8px 18px;border-radius:5px;text-decoration:none;font-size:13px}.container{max-width:1100px;margin:25px auto;padding:0 20px}.teacher-card{background:white;padding:20px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:20px;display:flex;align-items:center;gap:15px}.avatar{width:55px;height:55px;background:#1a237e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:white}.db-status{background:white;padding:12px 20px;border-radius:8px;margin-bottom:20px;font-size:14px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:25px}.card{background:white;padding:20px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.08);text-align:center}.card h3{color:#666;font-size:13px}.card .num{font-size:32px;font-weight:bold;color:#1a237e;margin:8px 0}.menu{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:25px}.menu a{padding:12px 22px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-size:14px;font-weight:bold;transition:0.3s}.menu a:hover{background:#0d1457;transform:translateY(-2px)}.green{background:#28a745!important}.warning{background:#ffc107!important;color:#333!important}</style></head><body><div class="header"><h1>👨‍🏫 Buddika Wijesundara</h1><a href="/admin/logout" class="logout">🚪 Logout</a></div><div class="container"><div class="db-status">Database: ${dbStatus}</div><div class="teacher-card"><div class="avatar">👨‍🏫</div><div><h2 style="color:#1a237e">Buddika Wijesundara</h2><p style="color:#666">Advanced Level Chemistry</p></div></div><div class="cards"><div class="card"><h3>📊 Total Students</h3><div class="num">${total}</div></div><div class="card"><h3>✅ Active</h3><div class="num">${total}</div></div><div class="card"><h3>⏳ Pending</h3><div class="num">0</div></div><div class="card"><h3>🚨 Inactive</h3><div class="num">0</div></div></div><div class="menu"><a href="/admin/courses" class="green">📚 Courses</a><a href="/admin/enrollments">💰 Payments</a><a href="/admin/students">👥 Students</a><a href="/admin/inactivity" class="warning">🚨 Inactive</a><a href="/admin/analytics">📊 Analytics</a><a href="/">🏠 Home</a></div></div></body></html>`);
 });
 
 // ============================================
@@ -582,25 +347,20 @@ app.get('/admin/enrollments', adminAuth, async (req, res) => {
     let enrollments = []; let courses = []; let students = [];
     if (dbConnected) { try { const [rows] = await db.query(`SELECT e.*, u.student_id, u.full_name, u.mobile_number, c.title as course_title FROM enrollments e JOIN users u ON e.user_id = u.id JOIN courses c ON e.course_id = c.id ORDER BY e.created_at DESC`); enrollments = rows; const [cRows] = await db.query(`SELECT * FROM courses WHERE status='published'`); courses = cRows; const [sRows] = await db.query(`SELECT id, student_id, full_name FROM users WHERE role='student'`); students = sRows; } catch(e) {} }
     let tr = '';
-    if (enrollments.length > 0) { enrollments.forEach(e => { const sc = e.status==='active'?'#28a745':e.status==='revoked'?'#dc3545':'#ffc107'; const pc = e.payment_status==='verified'?'#28a745':e.payment_status==='pending_verification'?'#17a2b8':'#dc3545'; tr += `<tr><td><strong>${e.student_id}</strong></td><td>${e.full_name}</td><td>${e.mobile_number}</td><td>${e.course_title}</td><td><span style="background:${sc};color:white;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:bold;">${e.status}</span></td><td><span style="background:${pc};color:white;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:bold;">${e.payment_status}</span></td><td>${e.payment_proof?'<a href="'+e.payment_proof+'" target="_blank">📎</a>':'N/A'}</td><td>${e.payment_status==='pending_verification'?`<a href="/admin/enrollments/verify/${e.id}" class="btn-mini btn-approve" onclick="return confirm('Approve?')">✅</a>`:''}${e.status==='active'?`<a href="/admin/enrollments/revoke/${e.id}" class="btn-mini btn-revoke" onclick="return confirm('Revoke?')">❌</a>`:e.status==='revoked'?`<a href="/admin/enrollments/activate/${e.id}" class="btn-mini btn-approve">🔄</a>`:''}<a href="/admin/enrollments/delete/${e.id}" class="btn-mini btn-delete" onclick="return confirm('Delete?')">🗑️</a></td></tr>`; }); } else { tr = '<tr><td colspan="8" style="text-align:center;padding:30px;">No enrollments yet.</td></tr>'; }
+    if (enrollments.length > 0) { enrollments.forEach(e => { const sc = e.status==='active'?'#28a745':e.status==='revoked'?'#dc3545':'#ffc107'; const pc = e.payment_status==='verified'?'#28a745':'pending_verification'?'#17a2b8':'#dc3545'; tr += `<tr><td><strong>${e.student_id}</strong></td><td>${e.full_name}</td><td>${e.mobile_number}</td><td>${e.course_title}</td><td><span style="background:${sc};color:white;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:bold;">${e.status}</span></td><td><span style="background:${pc};color:white;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:bold;">${e.payment_status}</span></td><td>${e.payment_proof?'<a href="'+e.payment_proof+'" target="_blank">📎</a>':'N/A'}</td><td>${e.payment_status==='pending_verification'?`<a href="/admin/enrollments/verify/${e.id}" class="btn-mini btn-approve" onclick="return confirm('Approve?')">✅</a>`:''}${e.status==='active'?`<a href="/admin/enrollments/revoke/${e.id}" class="btn-mini btn-revoke" onclick="return confirm('Revoke?')">❌</a>`:e.status==='revoked'?`<a href="/admin/enrollments/activate/${e.id}" class="btn-mini btn-approve">🔄</a>`:''}<a href="/admin/enrollments/delete/${e.id}" class="btn-mini btn-delete" onclick="return confirm('Delete?')">🗑️</a></td></tr>`; }); } else { tr = '<tr><td colspan="8" style="text-align:center;padding:30px;">No enrollments yet.</td></tr>'; }
     let co = courses.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
     let so = students.map(s => `<option value="${s.id}">${s.student_id} - ${s.full_name}</option>`).join('');
     res.send(`<!DOCTYPE html><html><head><title>Enrollments</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.back{color:white;text-decoration:none}.container{max-width:1200px;margin:25px auto;padding:0 20px}.card{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:20px}h2{color:#1a237e;margin-bottom:20px}input,select{width:100%;padding:12px;margin:8px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:14px}button{padding:12px 25px;background:#28a745;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:10px}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#1a237e;color:white;padding:10px;font-size:12px}td{padding:10px;border-bottom:1px solid #eee}tr:hover{background:#f5f5f5}.btn-mini{padding:5px 12px;border-radius:5px;text-decoration:none;font-size:11px;font-weight:bold;display:inline-block;margin:2px;color:white}.btn-approve{background:#28a745}.btn-revoke{background:#dc3545}.btn-delete{background:#6c757d}.info-box{background:#e8f5e9;color:#2e7d32;padding:15px;border-radius:8px;margin-bottom:20px;font-size:13px}</style></head><body><div class="header"><h1>💰 Payments</h1><a href="/admin/dashboard" class="back">← Dashboard</a></div><div class="container"><div class="info-box">💡 Student pays → Sends receipt → Admin Approves → Access granted</div><div class="card"><h2>➕ Manual Enroll</h2><form action="/admin/enrollments/create" method="POST"><select name="studentId" required><option value="">Select Student...</option>${so}</select><select name="courseId" required><option value="">Select Course...</option>${co}</select><select name="status"><option value="active">Active (Approve)</option><option value="pending">Pending</option></select><button type="submit">➕ Enroll</button></form></div><div class="card"><h2>All Enrollments</h2><div style="overflow-x:auto"><table><thead><tr><th>Student ID</th><th>Name</th><th>Mobile</th><th>Course</th><th>Status</th><th>Payment</th><th>Proof</th><th>Action</th></tr></thead><tbody>${tr}</tbody></table></div></div></div></body></html>`);
 });
 
-app.post('/admin/enrollments/create', adminAuth, async (req, res) => {
-    const { studentId, courseId, status } = req.body;
-    if (dbConnected) { await db.query(`INSERT INTO enrollments (user_id, course_id, status, payment_status) VALUES ($1,$2,$3,$4)`, { bind: [studentId, courseId, status||'active', status==='active'?'verified':'unpaid'] }); }
-    res.redirect('/admin/enrollments');
-});
-
+app.post('/admin/enrollments/create', adminAuth, async (req, res) => { const { studentId, courseId, status } = req.body; if (dbConnected) { await db.query(`INSERT INTO enrollments (user_id, course_id, status, payment_status) VALUES ($1,$2,$3,$4)`, { bind: [studentId, courseId, status||'active', status==='active'?'verified':'unpaid'] }); } res.redirect('/admin/enrollments'); });
 app.get('/admin/enrollments/verify/:id', adminAuth, async (req, res) => { if (dbConnected) { await db.query(`UPDATE enrollments SET payment_status='verified', status='active', enrolled_at=NOW() WHERE id=$1`, { bind: [req.params.id] }); } res.redirect('/admin/enrollments'); });
 app.get('/admin/enrollments/revoke/:id', adminAuth, async (req, res) => { if (dbConnected) { await db.query(`UPDATE enrollments SET status='revoked', revoked_at=NOW() WHERE id=$1`, { bind: [req.params.id] }); } res.redirect('/admin/enrollments'); });
 app.get('/admin/enrollments/activate/:id', adminAuth, async (req, res) => { if (dbConnected) { await db.query(`UPDATE enrollments SET status='active' WHERE id=$1`, { bind: [req.params.id] }); } res.redirect('/admin/enrollments'); });
 app.get('/admin/enrollments/delete/:id', adminAuth, async (req, res) => { if (dbConnected) { await db.query(`DELETE FROM enrollments WHERE id=$1`, { bind: [req.params.id] }); } res.redirect('/admin/enrollments'); });
 
 // ============================================
-// ADMIN - STUDENTS
+// ADMIN - STUDENTS, INACTIVE, ANALYTICS
 // ============================================
 app.get('/admin/students', adminAuth, async (req, res) => {
     let students = [];
@@ -610,9 +370,6 @@ app.get('/admin/students', adminAuth, async (req, res) => {
     res.send(`<!DOCTYPE html><html><head><title>Students</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.back{color:white;text-decoration:none}.container{max-width:1200px;margin:25px auto;padding:0 20px}.card{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08)}h2{color:#1a237e;margin-bottom:20px}table{width:100%;border-collapse:collapse}th{background:#1a237e;color:white;padding:12px;font-size:13px}td{padding:12px;border-bottom:1px solid #eee;font-size:14px}tr:hover{background:#f5f5f5}.badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:bold}.active{background:#d4edda;color:#155724}.inactive{background:#f8d7da;color:#721c24}.search-box{margin-bottom:20px}.search-box input{padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;width:300px}.count{background:#e3f2fd;color:#1565c0;padding:10px 20px;border-radius:8px;display:inline-block;margin-bottom:15px;font-weight:bold}</style></head><body><div class="header"><h1>👥 Students</h1><a href="/admin/dashboard" class="back">← Dashboard</a></div><div class="container"><div class="card"><h2>All Students</h2><div class="count">📊 Total: ${students.length}</div><div class="search-box"><input type="text" id="si" placeholder="🔍 Search..." onkeyup="searchTable()"></div><table id="st"><thead><tr><th>Student ID</th><th>Name</th><th>Email</th><th>Mobile</th><th>School</th><th>Status</th><th>Last Login</th><th>Registered</th></tr></thead><tbody>${tr}</tbody></table></div></div><script>function searchTable(){var i=document.getElementById('si'),f=i.value.toUpperCase(),t=document.getElementById('st'),r=t.getElementsByTagName('tr');for(var j=1;j<r.length;j++){var d=r[j].getElementsByTagName('td'),o=false;for(var k=0;k<d.length;k++){if(d[k]&&d[k].textContent.toUpperCase().indexOf(f)>-1){o=true;break}}r[j].style.display=o?'':'none'}}</script></body></html>`);
 });
 
-// ============================================
-// ADMIN - INACTIVE & ANALYTICS
-// ============================================
 app.get('/admin/inactivity', adminAuth, async (req, res) => {
     let inactive = [];
     if (dbConnected) { try { const [rows] = await db.query(`SELECT student_id, full_name, mobile_number, last_login_at FROM users WHERE role='student' AND (last_login_at IS NULL OR last_login_at < NOW() - INTERVAL '7 days') ORDER BY last_login_at ASC NULLS FIRST`); inactive = rows; } catch(e) {} }
