@@ -64,10 +64,66 @@ app.get('/', (req, res) => {
 });
 
 // ============================================
-// REGISTER GET
+// REGISTER GET (with Password Show/Hide)
 // ============================================
 app.get('/register', (req, res) => {
-    res.send(`<!DOCTYPE html><html><head><title>Register - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:430px}h2{text-align:center;color:#1a237e;margin-bottom:5px}.sub{text-align:center;color:#666;margin-bottom:20px;font-size:14px}input{width:100%;padding:14px;margin:8px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:16px}input:focus{border-color:#1a237e;outline:none}.warn{background:#fff3cd;color:#856404;padding:10px;border-radius:5px;font-size:13px;margin:10px 0;text-align:center}.info{background:#e3f2fd;color:#1565c0;padding:10px;border-radius:5px;font-size:13px;margin:10px 0;text-align:center}button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#218838}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}</style></head><body><div class="box"><h2>📝 Student Registration</h2><p class="sub">👨‍🏫 Buddika Wijesundara | Chemistry</p><form action="/register" method="POST"><input type="text" name="fullName" placeholder="Full Name" required><input type="email" name="email" placeholder="Email" required><input type="tel" name="mobile" placeholder="Mobile (0771234567)" pattern="[0-9]{10,12}" required><div class="warn">⚠️ One Mobile = One Student ID</div><div class="info">🆔 Auto ID: BC-1001, BC-1002...</div><input type="password" name="password" placeholder="Password (min 6)" minlength="6" required><button type="submit">Register</button></form><div class="link"><a href="/login">Already have account? Login</a></div><div class="link"><a href="/">← Home</a></div></div></body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Register - Buddika Wijesundara</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+        .box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:450px}
+        h2{text-align:center;color:#1a237e;margin-bottom:5px;font-size:22px}
+        .sub{text-align:center;color:#666;margin-bottom:20px;font-size:14px}
+        .input-group{position:relative;margin:8px 0}
+        .input-group input{width:100%;padding:14px 45px 14px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}
+        .input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}
+        .input-group input[type="text"],.input-group input[type="email"],.input-group input[type="tel"]{padding-right:14px}
+        .toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}
+        .toggle-password:hover{color:#1a237e}
+        .warn{background:#fff3cd;color:#856404;padding:10px;border-radius:5px;font-size:13px;margin:10px 0;text-align:center;border:1px solid #ffc107}
+        .info{background:#e3f2fd;color:#1565c0;padding:10px;border-radius:5px;font-size:13px;margin:10px 0;text-align:center}
+        button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.3s}
+        button:hover{background:#218838;transform:translateY(-2px)}
+        .link{text-align:center;margin-top:15px}
+        .link a{color:#1a237e;text-decoration:none;font-size:14px}
+        .link a:hover{text-decoration:underline}
+    </style></head><body>
+    <div class="box">
+        <h2>📝 Student Registration</h2>
+        <p class="sub">👨‍🏫 Buddika Wijesundara | Chemistry</p>
+        <form action="/register" method="POST">
+            <div class="input-group">
+                <input type="text" name="fullName" placeholder="Full Name" required>
+            </div>
+            <div class="input-group">
+                <input type="email" name="email" placeholder="Email Address" required>
+            </div>
+            <div class="input-group">
+                <input type="tel" name="mobile" placeholder="Mobile Number (0771234567)" pattern="[0-9]{10,12}" required>
+            </div>
+            <div class="warn">⚠️ One Mobile Number = One Student ID Only</div>
+            <div class="info">🆔 Auto Student ID: BC-1001, BC-1002...</div>
+            <div class="input-group">
+                <input type="password" name="password" id="regPassword" placeholder="Password (min 6 characters)" minlength="6" required>
+                <span class="toggle-password" onclick="togglePassword('regPassword', this)">👁️</span>
+            </div>
+            <button type="submit">📝 Register</button>
+        </form>
+        <div class="link"><a href="/login">Already have account? Login</a></div>
+        <div class="link"><a href="/">← Home</a></div>
+    </div>
+    <script>
+        function togglePassword(id, icon) {
+            var input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                icon.textContent = '👁️';
+            }
+        }
+    </script>
+    </body></html>`);
 });
 
 // ============================================
@@ -93,11 +149,62 @@ app.post('/register', async (req, res) => {
 });
 
 // ============================================
-// LOGIN GET
+// LOGIN GET (with Password Show/Hide)
 // ============================================
 app.get('/login', (req, res) => {
     if (req.session && req.session.isLoggedIn) return res.redirect('/student/dashboard');
-    res.send(`<!DOCTYPE html><html><head><title>Login - Buddika Wijesundara</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px}h2{text-align:center;color:#1a237e;margin-bottom:20px}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:16px}input:focus{border-color:#1a237e;outline:none}button{width:100%;padding:14px;background:#1a237e;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#0d1457}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.forgot{text-align:right;margin-top:5px}.forgot a{color:#dc3545;font-size:13px;text-decoration:none}.footer{text-align:center;margin-top:20px;font-size:11px;color:#999}</style></head><body><div class="box"><h2>🔐 Student Login</h2><form action="/login" method="POST"><input type="text" name="username" placeholder="Email or Username" required><input type="password" name="password" placeholder="Password" required><button type="submit">Login</button></form><div class="forgot"><a href="/forgot-password">Forgot Password?</a></div><div class="link"><a href="/register">New Student? Register</a></div><div class="link"><a href="/">← Home</a></div><div class="footer">© 2026 Buddika Wijesundara</div></div></body></html>`);
+    res.send(`<!DOCTYPE html><html><head><title>Login - Buddika Wijesundara</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+        .box{background:white;padding:40px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:420px}
+        h2{text-align:center;color:#1a237e;margin-bottom:5px;font-size:22px}
+        .sub{text-align:center;color:#666;margin-bottom:25px;font-size:14px}
+        .input-group{position:relative;margin:12px 0}
+        .input-group input{width:100%;padding:14px 45px 14px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}
+        .input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}
+        .toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}
+        .toggle-password:hover{color:#1a237e}
+        button{width:100%;padding:14px;background:#1a237e;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:15px;transition:0.3s}
+        button:hover{background:#0d1457;transform:translateY(-2px)}
+        .link{text-align:center;margin-top:15px}
+        .link a{color:#1a237e;text-decoration:none;font-size:14px}
+        .link a:hover{text-decoration:underline}
+        .forgot{text-align:right;margin-top:5px}
+        .forgot a{color:#dc3545;font-size:13px;text-decoration:none}
+        .forgot a:hover{text-decoration:underline}
+        .footer{text-align:center;margin-top:20px;font-size:11px;color:#999}
+    </style></head><body>
+    <div class="box">
+        <h2>🔐 Student Login</h2>
+        <p class="sub">Buddika Wijesundara | Chemistry</p>
+        <form action="/login" method="POST">
+            <div class="input-group">
+                <input type="text" name="username" placeholder="Email or Username" required>
+            </div>
+            <div class="input-group">
+                <input type="password" name="password" id="loginPassword" placeholder="Password" required>
+                <span class="toggle-password" onclick="togglePassword('loginPassword', this)">👁️</span>
+            </div>
+            <div class="forgot"><a href="/forgot-password">Forgot Password?</a></div>
+            <button type="submit">Login</button>
+        </form>
+        <div class="link"><a href="/register">New Student? Register</a></div>
+        <div class="link"><a href="/">← Home</a></div>
+        <div class="footer">© 2026 Buddika Wijesundara</div>
+    </div>
+    <script>
+        function togglePassword(id, icon) {
+            var input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                icon.textContent = '👁️';
+            }
+        }
+    </script>
+    </body></html>`);
 });
 
 // ============================================
@@ -214,7 +321,7 @@ app.post('/verify-code', async (req, res) => {
 });
 
 // ============================================
-// RESET PASSWORD - GET
+// RESET PASSWORD - GET (with Show/Hide)
 // ============================================
 app.get('/reset-password', async (req, res) => {
     const { token, verified } = req.query;
@@ -225,9 +332,55 @@ app.get('/reset-password', async (req, res) => {
         if (users.length === 0) return res.send(`<script>alert('Invalid or expired link!');window.location.href='/forgot-password'</script>`);
     }
     
-    res.send(`<!DOCTYPE html><html><head><title>Reset Password</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#28a745,#218838);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.2);width:100%;max-width:400px}h2{color:#28a745;margin-bottom:5px;text-align:center}.sub{text-align:center;color:#666;margin-bottom:20px;font-size:14px}.verified{background:#d4edda;color:#155724;padding:10px;border-radius:8px;text-align:center;margin-bottom:20px;font-size:13px;font-weight:bold}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:16px}input:focus{border-color:#1a237e;outline:none}button{width:100%;padding:14px;background:#1a237e;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#0d1457}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}</style></head><body><div class="box"><h2>🔑 Reset Password</h2><p class="sub">✅ Email Verified Successfully!</p><div class="verified">✅ Verification Successful - Enter New Password</div><form action="/reset-password" method="POST"><input type="hidden" name="token" value="${token}"><input type="password" name="password" placeholder="New Password (min 6)" minlength="6" required><input type="password" name="confirmPassword" placeholder="Confirm Password" minlength="6" required><button type="submit">🔐 Update Password</button></form><div class="link"><a href="/login">← Back to Login</a></div></div></body></html>`);
-});
-
+    res.send(`<!DOCTYPE html><html><head><title>Reset Password</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#28a745,#218838);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+        .box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.2);width:100%;max-width:420px}
+        h2{color:#28a745;margin-bottom:5px;text-align:center;font-size:22px}
+        .sub{text-align:center;color:#666;margin-bottom:20px;font-size:14px}
+        .verified{background:#d4edda;color:#155724;padding:10px;border-radius:8px;text-align:center;margin-bottom:20px;font-size:13px;font-weight:bold}
+        .input-group{position:relative;margin:10px 0}
+        .input-group input{width:100%;padding:14px 45px 14px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}
+        .input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}
+        .toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}
+        .toggle-password:hover{color:#1a237e}
+        button{width:100%;padding:14px;background:#1a237e;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.3s}
+        button:hover{background:#0d1457;transform:translateY(-2px)}
+        .link{text-align:center;margin-top:15px}
+        .link a{color:#1a237e;text-decoration:none;font-size:14px}
+    </style></head><body>
+    <div class="box">
+        <h2>🔑 Reset Password</h2>
+        <p class="sub">✅ Email Verified Successfully!</p>
+        <div class="verified">✅ Verification Successful - Enter New Password</div>
+        <form action="/reset-password" method="POST">
+            <input type="hidden" name="token" value="${token}">
+            <div class="input-group">
+                <input type="password" name="password" id="newPass1" placeholder="New Password (min 6)" minlength="6" required>
+                <span class="toggle-password" onclick="togglePassword('newPass1', this)">👁️</span>
+            </div>
+            <div class="input-group">
+                <input type="password" name="confirmPassword" id="newPass2" placeholder="Confirm Password" minlength="6" required>
+                <span class="toggle-password" onclick="togglePassword('newPass2', this)">👁️</span>
+            </div>
+            <button type="submit">🔐 Update Password</button>
+        </form>
+        <div class="link"><a href="/login">← Back to Login</a></div>
+    </div>
+    <script>
+        function togglePassword(id, icon) {
+            var input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                icon.textContent = '👁️';
+            }
+        }
+    </script>
+    </body></html>`);
+});v
 // ============================================
 // RESET PASSWORD - POST
 // ============================================
@@ -300,21 +453,66 @@ app.get('/student/courses/:courseId/lessons', studentAuth, async (req, res) => {
 });
 
 // ============================================
-// ADMIN LOGIN
+// ADMIN LOGIN GET (with Password Show/Hide)
 // ============================================
 app.get('/admin/login', (req, res) => {
     if (req.session && req.session.isAdminLoggedIn) return res.redirect('/admin/dashboard');
     const err = req.query.error === '1' ? '❌ Wrong Username or Password!' : '';
-    res.send(`<!DOCTYPE html><html><head><title>Teacher Login</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#0d1457);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.4);width:100%;max-width:400px}.icon{text-align:center;font-size:60px;margin-bottom:20px}h2{text-align:center;color:#1a237e}.sub{text-align:center;color:#666;margin-bottom:25px;font-size:14px}.error{background:#f8d7da;color:#721c24;padding:12px;border-radius:8px;margin-bottom:20px;text-align:center;${err?'':'display:none'}}input{width:100%;padding:15px;margin:10px 0;border:2px solid #e0e0e0;border-radius:10px;font-size:16px}input:focus{border-color:#1a237e;outline:none}button{width:100%;padding:15px;margin-top:15px;background:linear-gradient(135deg,#1a237e,#283593);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer}.forgot{text-align:right;margin-top:5px}.forgot a{color:#dc3545;font-size:13px;text-decoration:none}.link{text-align:center;margin-top:20px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.note{text-align:center;margin-top:20px;font-size:12px;color:#999;background:#f5f5f5;padding:10px;border-radius:8px}.footer{text-align:center;margin-top:20px;font-size:11px;color:#999}</style></head><body><div class="box"><div class="icon">🔒</div><h2>👨‍🏫 Teacher Login</h2><p class="sub">Buddika Wijesundara | Chemistry LMS</p><div class="error">${err}</div><form action="/admin/login" method="POST"><input type="text" name="username" placeholder="👤 Username" required autofocus><input type="password" name="password" placeholder="🔑 Password" required><button type="submit">🔐 Login</button></form><div class="forgot"><a href="/forgot-password">Forgot Password?</a></div><div class="note">🛡️ Authorized Teacher Only</div><div class="link"><a href="/">← Home</a></div><div class="footer">© 2026 Buddika Wijesundara</div></div></body></html>`);
-});
-
-app.post('/admin/login', (req, res) => {
-    const { username, password } = req.body;
-    if (username === ADMIN.username && password === ADMIN.password) {
-        req.session.isAdminLoggedIn = true; req.session.adminName = ADMIN.name;
-        return res.redirect('/admin/dashboard');
-    }
-    return res.redirect('/admin/login?error=1');
+    res.send(`<!DOCTYPE html><html><head><title>Teacher Login</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#0d1457);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+        .box{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.4);width:100%;max-width:420px}
+        .icon{text-align:center;font-size:60px;margin-bottom:20px}
+        h2{text-align:center;color:#1a237e;margin-bottom:5px;font-size:22px}
+        .sub{text-align:center;color:#666;margin-bottom:25px;font-size:14px}
+        .error{background:#f8d7da;color:#721c24;padding:12px;border-radius:8px;margin-bottom:20px;text-align:center;${err?'':'display:none'}}
+        .input-group{position:relative;margin:10px 0}
+        .input-group input{width:100%;padding:15px 45px 15px 15px;border:2px solid #e0e0e0;border-radius:10px;font-size:16px;transition:0.3s}
+        .input-group input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}
+        .toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;color:#666;padding:5px;transition:0.2s}
+        .toggle-password:hover{color:#1a237e}
+        button{width:100%;padding:15px;margin-top:15px;background:linear-gradient(135deg,#1a237e,#283593);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.3s}
+        button:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(26,35,126,0.3)}
+        .forgot{text-align:right;margin-top:5px}
+        .forgot a{color:#dc3545;font-size:13px;text-decoration:none}
+        .link{text-align:center;margin-top:20px}
+        .link a{color:#1a237e;text-decoration:none;font-size:14px}
+        .note{text-align:center;margin-top:20px;font-size:12px;color:#999;background:#f5f5f5;padding:10px;border-radius:8px}
+        .footer{text-align:center;margin-top:20px;font-size:11px;color:#999}
+    </style></head><body>
+    <div class="box">
+        <div class="icon">🔒</div>
+        <h2>👨‍🏫 Teacher Login</h2>
+        <p class="sub">Buddika Wijesundara | Chemistry LMS</p>
+        <div class="error">${err}</div>
+        <form action="/admin/login" method="POST">
+            <div class="input-group">
+                <input type="text" name="username" placeholder="👤 Username" required autofocus>
+            </div>
+            <div class="input-group">
+                <input type="password" name="password" id="adminPassword" placeholder="🔑 Password" required>
+                <span class="toggle-password" onclick="togglePassword('adminPassword', this)">👁️</span>
+            </div>
+            <div class="forgot"><a href="/forgot-password">Forgot Password?</a></div>
+            <button type="submit">🔐 Login</button>
+        </form>
+        <div class="note">🛡️ Authorized Teacher Only</div>
+        <div class="link"><a href="/">← Home</a></div>
+        <div class="footer">© 2026 Buddika Wijesundara</div>
+    </div>
+    <script>
+        function togglePassword(id, icon) {
+            var input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                icon.textContent = '👁️';
+            }
+        }
+    </script>
+    </body></html>`);
 });
 
 // ============================================
