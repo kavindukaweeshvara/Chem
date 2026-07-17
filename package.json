@@ -1,7 +1,7 @@
 {
   "name": "buddika-wijesundara-lms",
   "version": "1.0.0",
-  "description": "Buddika Wijesundara LMS",
+  "description": "Buddika Wijesundara - Advanced Level Chemistry Learning Management System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -18,5 +18,7 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "author": "Buddika Wijesundara",
+  "license": "UNLICENSED"
 }
