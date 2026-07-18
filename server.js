@@ -193,7 +193,7 @@ app.get('/forgot-password', (req, res) => {
 });
 
 // ============================================
-// FORGOT PASSWORD - POST (Email Timeout Fix + Fallback)
+// FORGOT PASSWORD - POST (Email Only - SECURE)
 // ============================================
 app.post('/forgot-password', async (req, res) => {
     try {
@@ -204,7 +204,7 @@ app.post('/forgot-password', async (req, res) => {
         const [users] = await db.query(`SELECT * FROM users WHERE email = $1`, { bind: [email] });
         
         if (users.length === 0) {
-            return res.send(`<!DOCTYPE html><html><head><title>Not Found</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center}h2{color:#dc3545;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>❌ Email Not Found!</h2><p>No account found with: <strong>${email}</strong></p><a href="/forgot-password" class="btn">🔄 Try Again</a><br><br><a href="/register" style="color:#1a237e;">📝 Register</a></div></body></html>`);
+            return res.send(`<!DOCTYPE html><html><head><title>Not Found</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center}h2{color:#dc3545;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>❌ Email Not Found!</h2><p>No account found with: <strong>${email}</strong></p><a href="/forgot-password" class="btn">🔄 Try Again</a></div></body></html>`);
         }
         
         const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -213,7 +213,7 @@ app.post('/forgot-password', async (req, res) => {
         
         await db.query(`UPDATE users SET reset_token=$1, reset_token_expires=$2, verification_code=$3 WHERE email=$4`, { bind: [token, expires, code, email] });
         
-        // Send Email with Timeout
+        // Send Email
         let emailSent = false;
         try {
             const nodemailer = require('nodemailer');
@@ -222,9 +222,9 @@ app.post('/forgot-password', async (req, res) => {
                 port: parseInt(process.env.EMAIL_PORT || '587'),
                 secure: false,
                 auth: { user: process.env.EMAIL_USER || '', pass: process.env.EMAIL_PASS || '' },
-                connectionTimeout: 5000,
-                greetingTimeout: 5000,
-                socketTimeout: 5000
+                connectionTimeout: 8000,
+                greetingTimeout: 8000,
+                socketTimeout: 8000
             });
             
             await transporter.sendMail({
@@ -239,8 +239,11 @@ app.post('/forgot-password', async (req, res) => {
             console.error('❌ Email failed:', emailErr.message);
         }
         
-        // Show page (with code if email failed)
-        res.send(`<!DOCTYPE html><html><head><title>${emailSent ? 'Check Email' : 'Verification Code'}</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.3);width:100%;max-width:430px;text-align:center}h2{color:#1a237e;margin-bottom:10px;font-size:22px}.sub{color:#666;font-size:14px;margin-bottom:20px}.code-box{background:#f0f0f0;padding:20px;border-radius:10px;margin:20px 0;font-size:32px;font-weight:bold;color:#1a237e;letter-spacing:5px;${emailSent ? 'display:none' : ''}}.info{background:${emailSent ? '#e3f2fd' : '#fff3cd'};color:${emailSent ? '#1565c0' : '#856404'};padding:12px;border-radius:8px;font-size:13px;margin:15px 0}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:18px;text-align:center;letter-spacing:5px}input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#218838}.link{margin-top:15px}.link a{color:white;text-decoration:none;font-size:14px;background:rgba(255,255,255,0.2);padding:8px 20px;border-radius:20px}.email-info{color:#1a237e;font-weight:bold;font-size:16px;margin:10px 0}</style></head><body><div class="box"><h2>${emailSent ? '📧 Check Your Email!' : '📧 Verification Code'}</h2><p class="sub">${emailSent ? 'Verification code sent to:' : 'Email send failed. Use this code:'}</p><p class="email-info">${email}</p>${!emailSent ? `<div class="code-box">${code}</div>` : ''}<div class="info">${emailSent ? '📋 Please check your email inbox (and spam)<br>Enter the 6-digit code below' : '📋 Please enter the 6-digit code above'} <br>⚠️ Code expires in 1 hour</div><form action="/verify-code" method="POST"><input type="hidden" name="token" value="${token}"><input type="hidden" name="email" value="${email}"><input type="text" name="code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required autofocus><button type="submit">✅ Verify & Reset Password</button></form><div class="link" style="margin-top:20px;"><a href="/login">← Back to Login</a></div></div></body></html>`);
+        if (emailSent) {
+            res.send(`<!DOCTYPE html><html><head><title>Check Email</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.3);width:100%;max-width:430px;text-align:center}h2{color:#1a237e;margin-bottom:10px;font-size:22px}.sub{color:#666;font-size:14px;margin-bottom:20px}.info{background:#e3f2fd;color:#1565c0;padding:12px;border-radius:8px;font-size:13px;margin:15px 0}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:18px;text-align:center;letter-spacing:5px}input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#218838}.link{margin-top:15px}.link a{color:white;text-decoration:none;font-size:14px;background:rgba(255,255,255,0.2);padding:8px 20px;border-radius:20px}.email-info{color:#1a237e;font-weight:bold;font-size:16px;margin:10px 0}</style></head><body><div class="box"><h2>📧 Check Your Email!</h2><p class="sub">Verification code sent to:</p><p class="email-info">${email}</p><div class="info">📋 Please check your email inbox (and spam folder)<br>Enter the 6-digit code from your email<br>⚠️ Code expires in 1 hour</div><form action="/verify-code" method="POST"><input type="hidden" name="token" value="${token}"><input type="hidden" name="email" value="${email}"><input type="text" name="code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required autofocus><button type="submit">✅ Verify & Reset Password</button></form><div class="link" style="margin-top:20px;"><a href="/login">← Back to Login</a></div></div></body></html>`);
+        } else {
+            res.send(`<!DOCTYPE html><html><head><title>Email Failed</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center}h2{color:#dc3545;margin-bottom:10px}p{color:#666;margin-bottom:20px;line-height:1.8}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px}.contact{background:#fff3cd;color:#856404;padding:15px;border-radius:8px;font-size:13px;margin:15px 0}</style></head><body><div class="box"><h2>❌ Email Send Failed!</h2><p>Unable to send verification code.<br>Please try again later.</p><div class="contact">📱 Contact Teacher:<br><strong>${TEACHER.name}</strong><br>WhatsApp: ${TEACHER.whatsapp}</div><a href="/forgot-password" class="btn">🔄 Try Again</a><br><a href="/login" style="color:#1a237e;font-size:14px;">← Back to Login</a></div></body></html>`);
+        }
         
     } catch (e) { 
         res.send(`<script>alert('Error: ${e.message}');window.location.href='/forgot-password'</script>`); 
@@ -476,6 +479,6 @@ app.listen(PORT, () => {
     console.log(`✅ http://localhost:${PORT}`);
     console.log(`🔑 Admin: Buddika / Buddika@2024`);
     console.log(`📧 Email: ${TEACHER.email}`);
-    console.log(`💾 Data Safe: No DROP TABLE`);
+    console.log(`🔒 Forgot Password: Email Only (Secure)`);
     console.log('===================================');
 });
