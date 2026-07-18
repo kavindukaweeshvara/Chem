@@ -34,7 +34,7 @@ const upload = multer({
 });
 
 // ============================================
-// TEACHER SETTINGS (Railway Variables)
+// TEACHER SETTINGS
 // ============================================
 const TEACHER = {
     name: process.env.TEACHER_NAME || 'Buddika Wijesundara',
@@ -70,7 +70,7 @@ try {
                 await db.query(`CREATE TABLE IF NOT EXISTS lessons (id SERIAL PRIMARY KEY, course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE, title VARCHAR(255) NOT NULL, topic_name VARCHAR(255), zoom_link VARCHAR(500), video_url VARCHAR(500), order_number INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT NOW())`);
                 await db.query(`CREATE TABLE IF NOT EXISTS enrollments (id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE CASCADE, course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE, status VARCHAR(20) DEFAULT 'pending', payment_status VARCHAR(20) DEFAULT 'unpaid', payment_proof VARCHAR(500), enrolled_at TIMESTAMP DEFAULT NOW(), expires_at TIMESTAMP, revoked_at TIMESTAMP, created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW())`);
                 await db.query(`CREATE TABLE IF NOT EXISTS activities (id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id), action VARCHAR(100) NOT NULL, details TEXT, created_at TIMESTAMP DEFAULT NOW())`);
-                console.log('✅ All tables ready (data preserved)');
+                console.log('✅ All tables ready');
                 const [admin] = await db.query(`SELECT * FROM users WHERE username = 'Buddika'`);
                 if (admin.length === 0) {
                     const hash = await bcrypt.hash('Buddika@2024', 12);
@@ -186,33 +186,70 @@ app.post('/login', async (req, res) => {
 });
 
 // ============================================
-// FORGOT PASSWORD - GET/POST/VERIFY/RESET
+// FORGOT PASSWORD - GET
 // ============================================
 app.get('/forgot-password', (req, res) => {
     res.send(`<!DOCTYPE html><html><head><title>Forgot Password</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:420px}h2{text-align:center;color:#1a237e;margin-bottom:10px;font-size:22px}p{text-align:center;color:#666;margin-bottom:20px;font-size:14px}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:0.3s}input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}button{width:100%;padding:14px;background:#dc3545;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.3s}button:hover{background:#c82333;transform:translateY(-2px)}.link{text-align:center;margin-top:15px}.link a{color:#1a237e;text-decoration:none;font-size:14px}.info{background:#e3f2fd;color:#1565c0;padding:12px;border-radius:8px;font-size:13px;margin:10px 0;text-align:center}</style></head><body><div class="box"><h2>🔑 Forgot Password?</h2><p>Enter your email to receive verification code</p><form action="/forgot-password" method="POST"><input type="email" name="email" placeholder="Your Email Address" required><button type="submit">📧 Send Verification Code</button></form><div class="info">📧 Verification code will be sent to your email</div><div class="link"><a href="/login">← Back to Login</a></div></div></body></html>`);
 });
 
+// ============================================
+// FORGOT PASSWORD - POST (Email Timeout Fix + Fallback)
+// ============================================
 app.post('/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) return res.send(`<script>alert('Email required!');window.location.href='/forgot-password'</script>`);
         if (!dbConnected) return res.send(`<script>alert('Database not connected!');window.location.href='/forgot-password'</script>`);
+        
         const [users] = await db.query(`SELECT * FROM users WHERE email = $1`, { bind: [email] });
-        if (users.length === 0) return res.send(`<!DOCTYPE html><html><head><title>Not Found</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center}h2{color:#dc3545;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>❌ Email Not Found!</h2><p>No account found with: <strong>${email}</strong></p><a href="/forgot-password" class="btn">🔄 Try Again</a><br><br><a href="/register" style="color:#1a237e;">📝 Register</a></div></body></html>`);
+        
+        if (users.length === 0) {
+            return res.send(`<!DOCTYPE html><html><head><title>Not Found</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center}h2{color:#dc3545;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>❌ Email Not Found!</h2><p>No account found with: <strong>${email}</strong></p><a href="/forgot-password" class="btn">🔄 Try Again</a><br><br><a href="/register" style="color:#1a237e;">📝 Register</a></div></body></html>`);
+        }
+        
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         const token = crypto.randomBytes(32).toString('hex');
         const expires = new Date(Date.now() + 3600000);
+        
         await db.query(`UPDATE users SET reset_token=$1, reset_token_expires=$2, verification_code=$3 WHERE email=$4`, { bind: [token, expires, code, email] });
+        
+        // Send Email with Timeout
+        let emailSent = false;
         try {
             const nodemailer = require('nodemailer');
-            const transporter = nodemailer.createTransport({ host: process.env.EMAIL_HOST || 'smtp-relay.brevo.com', port: parseInt(process.env.EMAIL_PORT || '587'), secure: false, auth: { user: process.env.EMAIL_USER || '', pass: process.env.EMAIL_PASS || '' } });
-            await transporter.sendMail({ from: `"${TEACHER.name} LMS" <${process.env.EMAIL_FROM || 'noreply@chemistry.lk'}>`, to: email, subject: 'Password Reset Code - ' + TEACHER.name + ' LMS', html: `<div style="max-width:500px;margin:0 auto;padding:30px;font-family:Arial,sans-serif;background:#f5f5f5;border-radius:10px"><div style="text-align:center;font-size:50px;margin-bottom:20px">⚗️</div><h2 style="color:#1a237e;text-align:center">Password Reset Code</h2><p style="color:#666;text-align:center;font-size:16px">Hello, ${users[0].full_name}!</p><p style="color:#666;text-align:center">Your verification code is:</p><div style="background:#1a237e;color:white;padding:20px;border-radius:10px;text-align:center;font-size:36px;font-weight:bold;letter-spacing:10px;margin:20px 0">${code}</div><p style="color:#666;text-align:center;font-size:13px">⚠️ This code expires in 1 hour.</p><p style="color:#999;text-align:center;font-size:12px;margin-top:30px">If you didn't request this, please ignore.</p><hr style="border:1px solid #e0e0e0;margin:20px 0"><p style="text-align:center;color:#1a237e;font-weight:bold">👨‍🏫 ${TEACHER.name}<br>Advanced Level Chemistry LMS</p></div>` });
+            const transporter = nodemailer.createTransport({
+                host: process.env.EMAIL_HOST || 'smtp-relay.brevo.com',
+                port: parseInt(process.env.EMAIL_PORT || '587'),
+                secure: false,
+                auth: { user: process.env.EMAIL_USER || '', pass: process.env.EMAIL_PASS || '' },
+                connectionTimeout: 5000,
+                greetingTimeout: 5000,
+                socketTimeout: 5000
+            });
+            
+            await transporter.sendMail({
+                from: `"${TEACHER.name} LMS" <${process.env.EMAIL_FROM || 'noreply@chemistry.lk'}>`,
+                to: email,
+                subject: 'Password Reset Code - ' + TEACHER.name,
+                html: `<div style="max-width:500px;margin:0 auto;padding:30px;font-family:Arial,sans-serif;background:#f5f5f5;border-radius:10px"><div style="text-align:center;font-size:50px;margin-bottom:20px">⚗️</div><h2 style="color:#1a237e;text-align:center">Password Reset Code</h2><p style="color:#666;text-align:center;font-size:16px">Hello, ${users[0].full_name}!</p><p style="color:#666;text-align:center">Your verification code is:</p><div style="background:#1a237e;color:white;padding:20px;border-radius:10px;text-align:center;font-size:36px;font-weight:bold;letter-spacing:10px;margin:20px 0">${code}</div><p style="color:#666;text-align:center;font-size:13px">⚠️ This code expires in 1 hour.</p><hr style="border:1px solid #e0e0e0;margin:20px 0"><p style="text-align:center;color:#1a237e;font-weight:bold">👨‍🏫 ${TEACHER.name}</p></div>`
+            });
+            emailSent = true;
             console.log('✅ Email sent to:', email);
-        } catch(emailErr) { console.error('❌ Email error:', emailErr.message); }
-        res.send(`<!DOCTYPE html><html><head><title>Check Email</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.3);width:100%;max-width:430px;text-align:center}h2{color:#1a237e;margin-bottom:10px;font-size:22px}.sub{color:#666;font-size:14px;margin-bottom:20px}.info{background:#e3f2fd;color:#1565c0;padding:12px;border-radius:8px;font-size:13px;margin:15px 0}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:18px;text-align:center;letter-spacing:5px;transition:0.3s}input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;transition:0.3s}button:hover{background:#218838;transform:translateY(-2px)}.link{margin-top:15px}.link a{color:white;text-decoration:none;font-size:14px;background:rgba(255,255,255,0.2);padding:8px 20px;border-radius:20px}.email-info{color:#1a237e;font-weight:bold;font-size:16px;margin:10px 0}</style></head><body><div class="box"><h2>📧 Check Your Email!</h2><p class="sub">Verification code sent to:</p><p class="email-info">${email}</p><div class="info">📋 Please check your email inbox (and spam)<br>Enter the 6-digit code below<br>⚠️ Code expires in 1 hour</div><form action="/verify-code" method="POST"><input type="hidden" name="token" value="${token}"><input type="hidden" name="email" value="${email}"><input type="text" name="code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required autofocus><button type="submit">✅ Verify & Reset Password</button></form><div class="link" style="margin-top:20px;"><a href="/login">← Back to Login</a></div></div></body></html>`);
-    } catch (e) { res.send(`<script>alert('Error: ${e.message}');window.location.href='/forgot-password'</script>`); }
+        } catch(emailErr) {
+            console.error('❌ Email failed:', emailErr.message);
+        }
+        
+        // Show page (with code if email failed)
+        res.send(`<!DOCTYPE html><html><head><title>${emailSent ? 'Check Email' : 'Verification Code'}</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.3);width:100%;max-width:430px;text-align:center}h2{color:#1a237e;margin-bottom:10px;font-size:22px}.sub{color:#666;font-size:14px;margin-bottom:20px}.code-box{background:#f0f0f0;padding:20px;border-radius:10px;margin:20px 0;font-size:32px;font-weight:bold;color:#1a237e;letter-spacing:5px;${emailSent ? 'display:none' : ''}}.info{background:${emailSent ? '#e3f2fd' : '#fff3cd'};color:${emailSent ? '#1565c0' : '#856404'};padding:12px;border-radius:8px;font-size:13px;margin:15px 0}input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:18px;text-align:center;letter-spacing:5px}input:focus{border-color:#1a237e;outline:none;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}button{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}button:hover{background:#218838}.link{margin-top:15px}.link a{color:white;text-decoration:none;font-size:14px;background:rgba(255,255,255,0.2);padding:8px 20px;border-radius:20px}.email-info{color:#1a237e;font-weight:bold;font-size:16px;margin:10px 0}</style></head><body><div class="box"><h2>${emailSent ? '📧 Check Your Email!' : '📧 Verification Code'}</h2><p class="sub">${emailSent ? 'Verification code sent to:' : 'Email send failed. Use this code:'}</p><p class="email-info">${email}</p>${!emailSent ? `<div class="code-box">${code}</div>` : ''}<div class="info">${emailSent ? '📋 Please check your email inbox (and spam)<br>Enter the 6-digit code below' : '📋 Please enter the 6-digit code above'} <br>⚠️ Code expires in 1 hour</div><form action="/verify-code" method="POST"><input type="hidden" name="token" value="${token}"><input type="hidden" name="email" value="${email}"><input type="text" name="code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required autofocus><button type="submit">✅ Verify & Reset Password</button></form><div class="link" style="margin-top:20px;"><a href="/login">← Back to Login</a></div></div></body></html>`);
+        
+    } catch (e) { 
+        res.send(`<script>alert('Error: ${e.message}');window.location.href='/forgot-password'</script>`); 
+    }
 });
 
+// ============================================
+// VERIFY CODE + RESET PASSWORD
+// ============================================
 app.post('/verify-code', async (req, res) => { try { const { token, email, code } = req.body; if (!token || !email || !code) return res.send(`<script>alert('All fields required!');window.location.href='/forgot-password'</script>`); if (dbConnected) { const [users] = await db.query(`SELECT * FROM users WHERE email=$1 AND reset_token=$2 AND verification_code=$3 AND reset_token_expires > NOW()`, { bind: [email, token, code] }); if (users.length === 0) return res.send(`<!DOCTYPE html><html><head><title>Invalid</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center}h2{color:#dc3545;margin-bottom:10px}p{color:#666;margin-bottom:20px}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>❌ Invalid Code!</h2><p>The verification code is incorrect or expired.</p><a href="/forgot-password" class="btn">🔄 Try Again</a></div></body></html>`); } res.redirect(`/reset-password?token=${token}&verified=true`); } catch (e) { res.send(`<script>alert('Error: ${e.message}');window.location.href='/forgot-password'</script>`); } });
 
 app.get('/reset-password', async (req, res) => {
@@ -271,7 +308,7 @@ app.post('/student/profile/update', studentAuth, async (req, res) => {
 });
 
 // ============================================
-// STUDENT - PAYMENT PAGE (Variables)
+// STUDENT - PAYMENT PAGE
 // ============================================
 app.get('/student/payment', studentAuth, (req, res) => {
     res.send(`<!DOCTYPE html><html><head><title>Payment - ${TEACHER.name}</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}.card{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);max-width:500px;width:100%;text-align:center}h2{color:#1a237e;margin-bottom:15px}.bank-details{background:#f9f9f9;padding:20px;border-radius:10px;margin:20px 0;text-align:left}.bank-details p{margin:8px 0;font-size:15px}.highlight{background:#fff3cd;color:#856404;padding:15px;border-radius:8px;margin:20px 0;font-size:14px}.btn-wa{display:inline-block;padding:14px 30px;background:#25D366;color:white;text-decoration:none;border-radius:10px;font-weight:bold;font-size:16px;margin:10px;transition:0.3s}.btn-wa:hover{transform:translateY(-2px)}.btn-back{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px}</style></head><body><div class="card"><h2>💰 Payment Details</h2><p style="color:#666;">${TEACHER.name} - Chemistry LMS</p><div class="bank-details"><h3 style="color:#1a237e;margin-bottom:10px;">🏦 Bank Details</h3><p><strong>Bank:</strong> ${TEACHER.bankName}</p><p><strong>Account Name:</strong> ${TEACHER.bankAccountName}</p><p><strong>Account Number:</strong> ${TEACHER.bankAccountNumber}</p><p><strong>Branch:</strong> ${TEACHER.bankBranch}</p></div><div class="highlight"><strong>📱 Payment කළ පසු:</strong><br>1. Screenshot/Receipt එක ගන්න<br>2. පහත WhatsApp Button click කරන්න<br>3. Receipt + Student ID (<strong>${req.session.studentId}</strong>) send කරන්න</div><a href="https://wa.me/${TEACHER.whatsapp}?text=Payment%20Receipt%20-%20Student%20ID:%20${req.session.studentId}%20-%20Name:%20${encodeURIComponent(req.session.userName)}" target="_blank" class="btn-wa">📱 Send Receipt via WhatsApp</a><br><a href="/student/dashboard" class="btn-back">← Back</a></div></body></html>`);
@@ -438,8 +475,7 @@ app.listen(PORT, () => {
     console.log(`⚗️  ${TEACHER.name} LMS`);
     console.log(`✅ http://localhost:${PORT}`);
     console.log(`🔑 Admin: Buddika / Buddika@2024`);
-    console.log(`📷 Upload Photo: /admin/profile`);
-    console.log(`📱 WhatsApp: ${TEACHER.whatsapp}`);
+    console.log(`📧 Email: ${TEACHER.email}`);
     console.log(`💾 Data Safe: No DROP TABLE`);
     console.log('===================================');
 });
