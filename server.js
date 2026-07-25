@@ -10,14 +10,29 @@ const nodemailer = require('nodemailer');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ============================================
+// 🛡️ CRASH GUARDS (FIX: server crash weema navaththanawa)
+// ============================================
+process.on('unhandledRejection', (reason) => {
+    console.error('⚠️ Unhandled Rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+    console.error('⚠️ Uncaught Exception:', err.message);
+});
+
 // Upload folder
 const uploadDir = path.join(__dirname, 'public', 'uploads');
 try { if (!fs.existsSync(uploadDir)) { fs.mkdirSync(uploadDir, { recursive: true }); } } catch(e) {}
 
 // Multer
+// FIX: filename ekata random string ekak add kala - paper + answer okkoma
+// eka request ekaka (Date.now() same millisecond) upload karama file overwrite wena eka navaththanna
 const storage = multer.diskStorage({ 
     destination: (req, file, cb) => cb(null, uploadDir), 
-    filename: (req, file, cb) => { cb(null, 'file_' + Date.now() + path.extname(file.originalname)); } 
+    filename: (req, file, cb) => { 
+        const unique = Date.now() + '_' + Math.round(Math.random() * 1e9);
+        cb(null, 'file_' + unique + path.extname(file.originalname)); 
+    } 
 });
 const upload = multer({ 
     storage, 
@@ -121,7 +136,13 @@ async function teacherImg(size = 55) {
 }
 async function getPerms(uid) { if (!dbConnected) return {}; try { const [r] = await db.query(`SELECT can_delete_students, can_manage_lessons, can_send_reset_codes FROM users WHERE id=$1`, { bind: [uid] }); return r[0] || {}; } catch(e) { return {}; } }
 
-// Email Function
+// ============================================
+// 📧 EMAIL FUNCTION (FIX: Railway -> Gmail "Connection timeout")
+// Root cause: Railway containers default to IPv6 first, and Gmail SMTP
+// often times out over IPv6 from Railway's network. Forcing IPv4 (family:4)
+// plus explicit host/port fixes this. Also added connectionTimeout so it
+// fails fast instead of hanging.
+// ============================================
 async function sendEmail(to, subject, htmlContent) {
     console.log('📧 Sending email to:', to);
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
@@ -130,8 +151,13 @@ async function sendEmail(to, subject, htmlContent) {
     }
     try {
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+            tls: { rejectUnauthorized: false },
+            family: 4,
+            connectionTimeout: 15000
         });
         const info = await transporter.sendMail({ from: process.env.SMTP_USER, to, subject, html: htmlContent });
         console.log('✅ Email sent:', info.messageId);
@@ -140,11 +166,13 @@ async function sendEmail(to, subject, htmlContent) {
         console.log('❌ Email error:', error.message);
         try {
             const transporter2 = nodemailer.createTransport({
-                host: process.env.SMTP_HOST || 'smtp.gmail.com',
-                port: parseInt(process.env.SMTP_PORT || '587'),
-                secure: false,
+                host: 'smtp.gmail.com',
+                port: 465,
+                secure: true,
                 auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-                tls: { rejectUnauthorized: false }
+                tls: { rejectUnauthorized: false },
+                family: 4,
+                connectionTimeout: 15000
             });
             const info2 = await transporter2.sendMail({ from: process.env.SMTP_USER, to, subject, html: htmlContent });
             console.log('✅ Email sent (alt):', info2.messageId);
@@ -201,7 +229,7 @@ app.post('/register', async (req, res) => {
         const hash=await bcrypt.hash(password,12); 
         const [newUser] = await db.query(`INSERT INTO users (student_id,username,email,password,full_name,mobile_number,role,is_active) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,{bind:[sid,email.split('@')[0]+'_'+Date.now(),email,hash,fullName,mobile,'student',true]});
         res.send(`<!DOCTYPE html><html><head><title>Success!</title><meta charset="UTF-8"><style>*{margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:white;padding:40px;border-radius:20px;text-align:center}.icon{font-size:70px}h1{color:#28a745}.id-box{font-size:36px;font-weight:bold;color:#1a237e;background:#f0f0f0;padding:15px;border-radius:10px;margin:20px 0}.btn{display:inline-block;padding:14px 30px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px}</style></head><body><div class="card"><div class="icon">🎉</div><h1>Registration Successful!</h1><div class="id-box">🆔 ${sid}</div><p>✅ ${fullName}<br>✅ ${email}<br>✅ ${mobile}</p><a href="/login" class="btn">🔐 Login Now</a></div></body></html>`); 
-    } catch (e) { res.send(`<script>alert('Error');window.location.href='/register'</script>`); } 
+    } catch (e) { console.error('Register error:', e.message); res.send(`<script>alert('Error');window.location.href='/register'</script>`); } 
 });
 
 // ============================================
@@ -233,7 +261,7 @@ app.post('/login', async (req, res) => {
         req.session.isLoggedIn=true; req.session.userId=user.id; req.session.studentId=user.student_id; req.session.userName=user.full_name; req.session.userMobile=user.mobile_number; req.session.userRole=user.role;
         if(user.role==='admin'||user.role==='sub_admin') return res.redirect('/admin/dashboard');
         return res.redirect('/student/dashboard');
-    } catch(e){res.send(`<script>alert('Login failed!');window.location.href='/login'</script>`);}
+    } catch(e){ console.error('Login error:', e.message); res.send(`<script>alert('Login failed!');window.location.href='/login'</script>`);}
 });
 // ============================================
 // FORGOT PASSWORD
@@ -256,7 +284,7 @@ app.post('/forgot-password', async (req, res) => {
         await db.query(`UPDATE users SET reset_token=$1,reset_token_expires=$2,verification_code=$3 WHERE email=$4`,{bind:[token,expires,code,email]}); 
         const waMsg=encodeURIComponent(`🔑 Password Reset\n🆔 ${user.student_id}\n👤 ${user.full_name}\n📧 ${user.email}\n📱 ${user.mobile_number}`); 
         res.send(`<!DOCTYPE html><html><head><title>Request Sent</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a237e,#4a148c);display:flex;justify-content:center;align-items:center;min-height:100vh}.box{background:white;padding:35px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.3);width:100%;max-width:460px;text-align:center}h2{color:#1a237e}.btn-wa{display:inline-block;padding:14px 30px;background:#25D366;color:white;text-decoration:none;border-radius:10px;font-weight:bold;margin:10px}.btn-back{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px}input.code-input{width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:8px;font-size:18px;text-align:center;letter-spacing:5px;margin:10px 0}button.submit{width:100%;padding:14px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer}</style></head><body><div class="box"><h2>📱 Password Reset</h2><p><strong>${user.full_name} (${user.student_id})</strong></p><a href="https://wa.me/${T.whatsapp}?text=${waMsg}" target="_blank" class="btn-wa">📱 Send via WhatsApp</a><p style="color:#666;margin:15px 0">OR enter code:</p><form action="/verify-code" method="POST"><input type="hidden" name="token" value="${token}"><input type="hidden" name="email" value="${email}"><input type="text" name="code" class="code-input" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required autofocus><button type="submit" class="submit">✅ Verify & Reset</button></form><a href="/login" class="btn-back">← Back</a></div></body></html>`); 
-    } catch(e) { res.send(`<script>alert('Error');window.location.href='/forgot-password'</script>`); } 
+    } catch(e) { console.error('Forgot password error:', e.message); res.send(`<script>alert('Error');window.location.href='/forgot-password'</script>`); } 
 });
 
 app.post('/verify-code', async (req, res) => { 
@@ -265,7 +293,7 @@ app.post('/verify-code', async (req, res) => {
         if(!token||!email||!code) return res.send(`<script>alert('All fields required!');</script>`); 
         if(dbConnected){const [users]=await db.query(`SELECT * FROM users WHERE email=$1 AND reset_token=$2 AND verification_code=$3 AND reset_token_expires > NOW()`,{bind:[email,token,code]}); if(users.length===0) return res.send(`<script>alert('Invalid code!');</script>`);} 
         res.redirect(`/reset-password?token=${token}&verified=true`); 
-    } catch(e) { res.send(`<script>alert('Error');</script>`); } 
+    } catch(e) { console.error('Verify code error:', e.message); res.send(`<script>alert('Error');</script>`); } 
 });
 
 app.get('/reset-password', async (req, res) => { 
@@ -283,7 +311,7 @@ app.post('/reset-password', async (req, res) => {
         if(password.length<6) return res.send(`<script>alert('Min 6 characters!');</script>`); 
         if(dbConnected){const [users]=await db.query(`SELECT * FROM users WHERE reset_token=$1 AND reset_token_expires > NOW()`,{bind:[token]}); if(users.length===0) return res.send(`<script>alert('Expired!');</script>`); const hash=await bcrypt.hash(password,12); await db.query(`UPDATE users SET password=$1,reset_token=NULL,reset_token_expires=NULL,verification_code=NULL WHERE reset_token=$2`,{bind:[hash,token]});} 
         res.send(`<!DOCTYPE html><html><head><title>Updated</title><style>*{margin:0}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#28a745,#218838);display:flex;justify-content:center;align-items:center;min-height:100vh}.box{background:white;padding:35px;border-radius:15px;text-align:center}h2{color:#28a745}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold}</style></head><body><div class="box"><h2>✅ Password Updated!</h2><a href="/login" class="btn">🔐 Login</a></div></body></html>`); 
-    } catch(e) { res.send(`<script>alert('Error');window.location.href='/login'</script>`); } 
+    } catch(e) { console.error('Reset password error:', e.message); res.send(`<script>alert('Error');window.location.href='/login'</script>`); } 
 });
 
 // ============================================
@@ -314,7 +342,7 @@ app.post('/student/profile/update', auth, async (req, res) => {
         if(!fullName||!nicNumber||!schoolName||!district||!city) return res.send(`<script>alert('Fill required fields!');window.location.href='/student/profile'</script>`); 
         if(dbConnected){await db.query(`UPDATE users SET full_name=$1,nic_number=$2,birthdate=$3,gender=$4,school_name=$5,district=$6,city=$7,address=$8,profile_updated=true WHERE id=$9`,{bind:[fullName,nicNumber,birthdate||null,gender||null,schoolName,district,city,address||null,req.session.userId]});req.session.userName=fullName;} 
         res.redirect('/student/profile?saved=1'); 
-    } catch(e) { res.send(`<script>alert('Error');window.location.href='/student/profile'</script>`); } 
+    } catch(e) { console.error('Profile update error:', e.message); res.send(`<script>alert('Error');window.location.href='/student/profile'</script>`); } 
 });
 
 // ============================================
@@ -363,13 +391,15 @@ app.get('/student/courses/:courseId/lessons', auth, checkDeviceSession, async (r
 // VIDEO PLAYER
 // ============================================
 app.get('/video/play/:lessonId', auth, checkDeviceSession, async (req, res) => {
-    const lessonId = req.params.lessonId; if (!dbConnected) return res.send('<h2>Error</h2>');
-    const [lesson] = await db.query(`SELECT l.*, c.id as course_id FROM lessons l JOIN courses c ON l.course_id=c.id WHERE l.id=$1`, { bind: [lessonId] });
-    if (lesson.length === 0) return res.send('<h2>Not found</h2>');
-    const [enrollment] = await db.query(`SELECT * FROM enrollments WHERE user_id=$1 AND course_id=$2 AND status='active' AND payment_status='verified'`, { bind: [req.session.userId, lesson[0].course_id] });
-    if (enrollment.length === 0) return res.send(`<h2>🔒 Access Denied</h2><a href="/student/payment">💰 Pay</a>`);
-    const videoUrl = lesson[0].video_url; if (!videoUrl) return res.send('<h2>No video</h2>');
-    res.send(`<!DOCTYPE html><html><head><title>${lesson[0].title}</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden}.header{background:#1a237e;color:white;padding:10px 20px;display:flex;justify-content:space-between;align-items:center}.header a{color:white;text-decoration:none}.video-container{width:100%;height:calc(100vh - 46px);background:#000}.video-container iframe{width:100%;height:100%;border:none}</style></head><body><div class="header"><span>📺 ${lesson[0].title}</span><a href="/student/courses/${lesson[0].course_id}/lessons">← Back</a></div><div class="video-container"><iframe src="${videoUrl}" allow="autoplay; fullscreen" allowfullscreen></iframe></div><script>document.addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('keydown',e=>{if(e.ctrlKey&&['s','S','u','U','p','P'].includes(e.key))e.preventDefault();if(e.key==='F12')e.preventDefault()});</script></body></html>`);
+    try {
+        const lessonId = req.params.lessonId; if (!dbConnected) return res.send('<h2>Error</h2>');
+        const [lesson] = await db.query(`SELECT l.*, c.id as course_id FROM lessons l JOIN courses c ON l.course_id=c.id WHERE l.id=$1`, { bind: [lessonId] });
+        if (lesson.length === 0) return res.send('<h2>Not found</h2>');
+        const [enrollment] = await db.query(`SELECT * FROM enrollments WHERE user_id=$1 AND course_id=$2 AND status='active' AND payment_status='verified'`, { bind: [req.session.userId, lesson[0].course_id] });
+        if (enrollment.length === 0) return res.send(`<h2>🔒 Access Denied</h2><a href="/student/payment">💰 Pay</a>`);
+        const videoUrl = lesson[0].video_url; if (!videoUrl) return res.send('<h2>No video</h2>');
+        res.send(`<!DOCTYPE html><html><head><title>${lesson[0].title}</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden}.header{background:#1a237e;color:white;padding:10px 20px;display:flex;justify-content:space-between;align-items:center}.header a{color:white;text-decoration:none}.video-container{width:100%;height:calc(100vh - 46px);background:#000}.video-container iframe{width:100%;height:100%;border:none}</style></head><body><div class="header"><span>📺 ${lesson[0].title}</span><a href="/student/courses/${lesson[0].course_id}/lessons">← Back</a></div><div class="video-container"><iframe src="${videoUrl}" allow="autoplay; fullscreen" allowfullscreen></iframe></div><script>document.addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('keydown',e=>{if(e.ctrlKey&&['s','S','u','U','p','P'].includes(e.key))e.preventDefault();if(e.key==='F12')e.preventDefault()});</script></body></html>`);
+    } catch(e) { console.error('Video play error:', e.message); res.send('<h2>Error loading video</h2>'); }
 });
 
 // ============================================
@@ -399,7 +429,7 @@ app.post('/admin/profile/upload', adminAuth, upload.single('photo'), async (req,
         if (!req.file) return res.send(`<script>alert('Select photo!');window.location.href='/admin/profile'</script>`); 
         if (dbConnected) { await db.query(`UPDATE users SET profile_image=$1 WHERE username='Buddika' AND role='admin'`, { bind: [req.file.filename] }); } 
         res.redirect('/admin/profile?uploaded=1'); 
-    } catch(e) { res.send(`<script>alert('Error');window.location.href='/admin/profile'</script>`); } 
+    } catch(e) { console.error('Profile photo upload error:', e.message); res.send(`<script>alert('Error');window.location.href='/admin/profile'</script>`); } 
 });
 // ============================================
 // ADMIN PASSWORD REQUESTS
@@ -427,7 +457,7 @@ app.get('/admin/send-code-email', adminAuth, async (req, res) => {
             </div>`
         ); 
         emailSent = result.success; 
-    } catch(e) {} 
+    } catch(e) { console.error('Send code email error:', e.message); } 
     res.send(`<!DOCTYPE html><html><head><title>Email Status</title><style>*{margin:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh}.box{background:white;padding:35px;border-radius:15px;text-align:center;box-shadow:0 5px 15px rgba(0,0,0,0.1)}h2{color:${emailSent?'#28a745':'#dc3545'}}.btn{display:inline-block;padding:12px 25px;background:#1a237e;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:10px}</style></head><body><div class="box"><h2>${emailSent ? '✅ Code Sent!' : '❌ Failed to Send!'}</h2><p>${emailSent ? 'Reset code sent to '+email : 'Error sending email. Check SMTP settings.'}</p><a href="/admin/password-requests" class="btn">← Back</a></div></body></html>`); 
 });
 
@@ -444,24 +474,30 @@ app.get('/admin/sub-admins', adminAuth, async (req, res) => {
 });
 
 app.post('/admin/sub-admins/create', adminAuth, async (req, res) => { 
-    if (req.session.userRole !== 'admin') return res.redirect('/admin/dashboard'); 
-    const { fullName, email, mobile, password, canManageLessons, canSendCodes, canDeleteStudents } = req.body; 
-    if (!fullName || !email || !mobile || !password) return res.redirect('/admin/sub-admins'); 
-    const hash = await bcrypt.hash(password, 12); 
-    if (dbConnected) { await db.query(`INSERT INTO users (student_id, username, email, password, full_name, mobile_number, role, can_manage_lessons, can_send_reset_codes, can_delete_students, is_active, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`, { bind: ['SUB-' + Date.now(), email.split('@')[0], email, hash, fullName, mobile, 'sub_admin', !!canManageLessons, !!canSendCodes, !!canDeleteStudents, true, req.session.userId] }); } 
-    res.redirect('/admin/sub-admins'); 
+    try {
+        if (req.session.userRole !== 'admin') return res.redirect('/admin/dashboard'); 
+        const { fullName, email, mobile, password, canManageLessons, canSendCodes, canDeleteStudents } = req.body; 
+        if (!fullName || !email || !mobile || !password) return res.redirect('/admin/sub-admins'); 
+        const hash = await bcrypt.hash(password, 12); 
+        if (dbConnected) { await db.query(`INSERT INTO users (student_id, username, email, password, full_name, mobile_number, role, can_manage_lessons, can_send_reset_codes, can_delete_students, is_active, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`, { bind: ['SUB-' + Date.now(), email.split('@')[0], email, hash, fullName, mobile, 'sub_admin', !!canManageLessons, !!canSendCodes, !!canDeleteStudents, true, req.session.userId] }); } 
+        res.redirect('/admin/sub-admins'); 
+    } catch(e) { console.error('Sub admin create error:', e.message); res.redirect('/admin/sub-admins'); }
 });
 
 app.get('/admin/sub-admins/toggle/:id', adminAuth, async (req, res) => { 
-    if (req.session.userRole !== 'admin') return res.redirect('/admin/dashboard'); 
-    if (dbConnected) { await db.query(`UPDATE users SET is_active = NOT is_active WHERE id=$1 AND role='sub_admin'`, { bind: [req.params.id] }); } 
-    res.redirect('/admin/sub-admins'); 
+    try {
+        if (req.session.userRole !== 'admin') return res.redirect('/admin/dashboard'); 
+        if (dbConnected) { await db.query(`UPDATE users SET is_active = NOT is_active WHERE id=$1 AND role='sub_admin'`, { bind: [req.params.id] }); } 
+        res.redirect('/admin/sub-admins'); 
+    } catch(e) { console.error('Sub admin toggle error:', e.message); res.redirect('/admin/sub-admins'); }
 });
 
 app.get('/admin/sub-admins/delete/:id', adminAuth, async (req, res) => { 
-    if (req.session.userRole !== 'admin') return res.redirect('/admin/dashboard'); 
-    if (dbConnected) { await db.query(`DELETE FROM users WHERE id=$1 AND role='sub_admin'`, { bind: [req.params.id] }); } 
-    res.redirect('/admin/sub-admins'); 
+    try {
+        if (req.session.userRole !== 'admin') return res.redirect('/admin/dashboard'); 
+        if (dbConnected) { await db.query(`DELETE FROM users WHERE id=$1 AND role='sub_admin'`, { bind: [req.params.id] }); } 
+        res.redirect('/admin/sub-admins'); 
+    } catch(e) { console.error('Sub admin delete error:', e.message); res.redirect('/admin/sub-admins'); }
 });
 
 // ============================================
@@ -476,21 +512,27 @@ app.get('/admin/delete-requests', adminAuth, async (req, res) => {
 });
 
 app.get('/admin/delete-requests/approve/:id', adminAuth, async (req, res) => { 
-    if (req.session.userRole !== 'admin') return res.redirect('/admin/dashboard'); 
-    if (dbConnected) { await db.query(`DELETE FROM enrollments WHERE user_id=$1`, { bind: [req.params.id] }); await db.query(`DELETE FROM users WHERE id=$1`, { bind: [req.params.id] }); } 
-    res.redirect('/admin/delete-requests'); 
+    try {
+        if (req.session.userRole !== 'admin') return res.redirect('/admin/dashboard'); 
+        if (dbConnected) { await db.query(`DELETE FROM enrollments WHERE user_id=$1`, { bind: [req.params.id] }); await db.query(`DELETE FROM users WHERE id=$1`, { bind: [req.params.id] }); } 
+        res.redirect('/admin/delete-requests'); 
+    } catch(e) { console.error('Delete request approve error:', e.message); res.redirect('/admin/delete-requests'); }
 });
 
 app.get('/admin/delete-requests/reject/:id', adminAuth, async (req, res) => { 
-    if (req.session.userRole !== 'admin') return res.redirect('/admin/dashboard'); 
-    if (dbConnected) { await db.query(`UPDATE users SET delete_requested=false,delete_requested_by=NULL WHERE id=$1`, { bind: [req.params.id] }); } 
-    res.redirect('/admin/delete-requests'); 
+    try {
+        if (req.session.userRole !== 'admin') return res.redirect('/admin/dashboard'); 
+        if (dbConnected) { await db.query(`UPDATE users SET delete_requested=false,delete_requested_by=NULL WHERE id=$1`, { bind: [req.params.id] }); } 
+        res.redirect('/admin/delete-requests'); 
+    } catch(e) { console.error('Delete request reject error:', e.message); res.redirect('/admin/delete-requests'); }
 });
 
 app.get('/admin/request-delete/:studentId', adminAuth, async (req, res) => { 
-    if (req.session.userRole !== 'sub_admin') return res.redirect('/admin/dashboard'); 
-    if (dbConnected) { await db.query(`UPDATE users SET delete_requested=true,delete_requested_by=$1 WHERE student_id=$2`, { bind: [req.session.userId, req.params.studentId] }); } 
-    res.redirect('/admin/students?msg=delete_requested'); 
+    try {
+        if (req.session.userRole !== 'sub_admin') return res.redirect('/admin/dashboard'); 
+        if (dbConnected) { await db.query(`UPDATE users SET delete_requested=true,delete_requested_by=$1 WHERE student_id=$2`, { bind: [req.session.userId, req.params.studentId] }); } 
+        res.redirect('/admin/students?msg=delete_requested'); 
+    } catch(e) { console.error('Request delete error:', e.message); res.redirect('/admin/students'); }
 });
 
 // ============================================
@@ -503,16 +545,36 @@ app.get('/admin/courses', adminAuth, async (req, res) => {
     res.send(`<!DOCTYPE html><html><head><title>Courses</title><meta charset="UTF-8"><style>*{margin:0;padding:0}body{font-family:Arial,sans-serif;background:#f0f2f5}.header{background:linear-gradient(135deg,#1a237e,#283593);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}.back{color:white;text-decoration:none}.container{max-width:1000px;margin:25px auto;padding:0 20px}.card{background:white;padding:25px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.08);margin-bottom:20px}h2{color:#1a237e}input,textarea,select{width:100%;padding:12px;margin:8px 0;border:2px solid #e0e0e0;border-radius:8px;font-size:14px}button{padding:12px 25px;background:#28a745;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer}.course-card{background:white;padding:20px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:15px}.btn-small{padding:8px 16px;border-radius:5px;text-decoration:none;font-size:13px;font-weight:bold;display:inline-block;margin:3px;background:#1a237e;color:white}.btn-danger{background:#dc3545}</style></head><body><div class="header"><h1>📚 Courses</h1><a href="/admin/dashboard" class="back">← Dashboard</a></div><div class="container"><div class="card"><h2>➕ Create Course</h2><form action="/admin/courses/create" method="POST"><input type="text" name="title" placeholder="Course Title" required><textarea name="description" placeholder="Description" rows="3"></textarea><input type="number" name="price" placeholder="Price (Rs.)" value="0"><select name="status"><option value="published">Published</option><option value="draft">Draft</option></select><div style="margin:10px 0"><label><input type="checkbox" name="isPaper"> This is a Paper Class</label></div><button type="submit">➕ Create Course</button></form></div><h2>📖 All Courses</h2>${cc}</div></body></html>`); 
 });
 
+// FIX: try/catch nathi eka route eke crash wenna hethuwa una.
+// Price field eka empty string wenakota DECIMAL column ekata insert karama
+// PostgreSQL error dila try/catch nathuwa whole Node process eka crash una.
 app.post('/admin/courses/create', adminAuth, async (req, res) => { 
-    const { title, description, price, status, isPaper } = req.body; 
-    if(!title) return res.send(`<script>alert('Title required!');</script>`); 
-    if(dbConnected){await db.query(`INSERT INTO courses (title,description,price,status,is_paper) VALUES ($1,$2,$3,$4,$5)`,{bind:[title,description,price,status,!!isPaper]});} 
-    res.redirect('/admin/courses'); 
+    try {
+        const { title, description, price, status, isPaper } = req.body; 
+        if(!title) return res.send(`<script>alert('Title required!');window.location.href='/admin/courses'</script>`); 
+        let priceValue = 0;
+        if (price !== undefined && price !== null && price !== '') {
+            const parsed = parseFloat(price);
+            if (!isNaN(parsed)) priceValue = parsed;
+        }
+        if(dbConnected){
+            await db.query(
+                `INSERT INTO courses (title,description,price,status,is_paper) VALUES ($1,$2,$3,$4,$5)`,
+                { bind: [title, description || '', priceValue, status || 'draft', !!isPaper] }
+            );
+        } 
+        res.redirect('/admin/courses'); 
+    } catch(e) { 
+        console.error('Course create error:', e.message); 
+        res.send(`<script>alert('Error creating course. Check Railway logs.');window.location.href='/admin/courses'</script>`); 
+    }
 });
 
 app.get('/admin/courses/delete/:id', adminAuth, async (req, res) => { 
-    if(dbConnected){await db.query(`DELETE FROM courses WHERE id=$1`,{bind:[req.params.id]});} 
-    res.redirect('/admin/courses'); 
+    try {
+        if(dbConnected){await db.query(`DELETE FROM courses WHERE id=$1`,{bind:[req.params.id]});} 
+        res.redirect('/admin/courses'); 
+    } catch(e) { console.error('Course delete error:', e.message); res.redirect('/admin/courses'); }
 });
 
 // PAPER UPLOAD
@@ -537,7 +599,7 @@ app.post('/admin/courses/paper-upload/:id', adminAuth, upload.fields([{name:'pap
             await db.query(`UPDATE courses SET ${updates.join(',')} WHERE id=$${idx}`, { bind: binds }); 
         } 
         res.redirect(`/admin/courses/${courseId}/paper-upload?uploaded=1`); 
-    } catch(e) { res.redirect('/admin/courses'); } 
+    } catch(e) { console.error('Paper upload error:', e.message); res.redirect('/admin/courses'); } 
 });
 
 // LESSONS
@@ -550,11 +612,23 @@ app.get('/admin/courses/:courseId/lessons', adminAuth, async (req, res) => {
 });
 
 app.post('/admin/lessons/create', adminAuth, async (req, res) => { 
-    try { const { courseId, title, topicName, zoomLink, videoUrl, orderNumber } = req.body; if(!title) return res.send(`<script>alert('Title required!');</script>`); if(dbConnected){await db.query(`INSERT INTO lessons (course_id,title,topic_name,zoom_link,video_url,order_number) VALUES ($1,$2,$3,$4,$5,$6)`,{bind:[courseId,title,topicName,zoomLink,videoUrl,orderNumber||0]});} res.redirect(`/admin/courses/${courseId}/lessons`); } catch(e) { res.send(`<script>alert('Error');</script>`); } 
+    try { 
+        const { courseId, title, topicName, zoomLink, videoUrl, orderNumber } = req.body; 
+        if(!title) return res.send(`<script>alert('Title required!');</script>`); 
+        let orderVal = 0;
+        if (orderNumber !== undefined && orderNumber !== null && orderNumber !== '') {
+            const parsedOrder = parseInt(orderNumber);
+            if (!isNaN(parsedOrder)) orderVal = parsedOrder;
+        }
+        if(dbConnected){await db.query(`INSERT INTO lessons (course_id,title,topic_name,zoom_link,video_url,order_number) VALUES ($1,$2,$3,$4,$5,$6)`,{bind:[courseId,title,topicName||'',zoomLink||'',videoUrl||'',orderVal]});} 
+        res.redirect(`/admin/courses/${courseId}/lessons`); 
+    } catch(e) { console.error('Lesson create error:', e.message); res.send(`<script>alert('Error');</script>`); } 
 });
 
 app.get('/admin/lessons/delete/:id', adminAuth, async (req, res) => { 
-    const courseId=req.query.courseId; if(dbConnected){await db.query(`DELETE FROM lessons WHERE id=$1`,{bind:[req.params.id]});} res.redirect(`/admin/courses/${courseId}/lessons`); 
+    try {
+        const courseId=req.query.courseId; if(dbConnected){await db.query(`DELETE FROM lessons WHERE id=$1`,{bind:[req.params.id]});} res.redirect(`/admin/courses/${courseId}/lessons`); 
+    } catch(e) { console.error('Lesson delete error:', e.message); res.redirect('/admin/courses'); }
 });
 // ============================================
 // ADMIN ENROLLMENTS
@@ -573,7 +647,7 @@ app.post('/admin/enrollments/toggle', adminAuth, async (req, res) => {
     try {
         if (active) { const [e] = await db.query(`SELECT * FROM enrollments WHERE user_id=$1 AND course_id=$2`, { bind: [userId, courseId] }); if (e.length === 0) await db.query(`INSERT INTO enrollments (user_id,course_id,status,payment_status) VALUES ($1,$2,'active','verified')`, { bind: [userId, courseId] }); else await db.query(`UPDATE enrollments SET status='active',payment_status='verified' WHERE user_id=$1 AND course_id=$2`, { bind: [userId, courseId] }); res.json({ message: '✅ Enrolled!' }); }
         else { await db.query(`UPDATE enrollments SET status='revoked',revoked_at=NOW() WHERE user_id=$1 AND course_id=$2`, { bind: [userId, courseId] }); res.json({ message: '❌ Revoked!' }); }
-    } catch(e) { res.json({ message: 'Error' }); }
+    } catch(e) { console.error('Enrollment toggle error:', e.message); res.json({ message: 'Error' }); }
 });
 
 // ============================================
@@ -605,9 +679,11 @@ app.get('/admin/students', adminAuth, async (req, res) => {
 });
 
 app.get('/admin/students/delete/:id', adminAuth, async (req, res) => { 
-    if(req.session.userRole!=='admin') return res.redirect('/admin/students'); 
-    if(dbConnected){await db.query(`DELETE FROM enrollments WHERE user_id=$1`,{bind:[req.params.id]});await db.query(`DELETE FROM users WHERE id=$1`,{bind:[req.params.id]});} 
-    res.redirect('/admin/students'); 
+    try {
+        if(req.session.userRole!=='admin') return res.redirect('/admin/students'); 
+        if(dbConnected){await db.query(`DELETE FROM enrollments WHERE user_id=$1`,{bind:[req.params.id]});await db.query(`DELETE FROM users WHERE id=$1`,{bind:[req.params.id]});} 
+        res.redirect('/admin/students'); 
+    } catch(e) { console.error('Student delete error:', e.message); res.redirect('/admin/students'); }
 });
 
 // ============================================
@@ -631,12 +707,12 @@ app.get('/admin/announcements', adminAuth, async (req, res) => {
 });
 
 app.post('/admin/announcements/create', adminAuth, async (req, res) => {
-    const { title, content, sendEmail } = req.body;
+    const { title, content, sendEmail: shouldSendEmail } = req.body;
     if (!title || !content) return res.redirect('/admin/announcements');
     try {
         if (dbConnected) {
             await db.query(`INSERT INTO announcements (title, content, created_by) VALUES ($1,$2,$3)`, { bind: [title, content, req.session.userId] });
-            if (sendEmail === 'on') {
+            if (shouldSendEmail === 'on') {
                 const [students] = await db.query(`SELECT id, email, full_name FROM users WHERE role='student' AND is_active=true`);
                 for (let student of students) {
                     const result = await sendEmail(student.email, `📢 ${title} - Chemistry LMS`, `<div style="padding:20px;font-family:Arial;"><h2 style="color:#ff9800;">📢 ${title}</h2><p>Hello ${student.full_name},</p><div style="background:#f9f9f9;padding:15px;border-radius:8px;margin:15px 0;"><p>${content}</p></div><p>👨‍🏫 ${T.name} | Chemistry LMS</p></div>`);
@@ -645,12 +721,14 @@ app.post('/admin/announcements/create', adminAuth, async (req, res) => {
             }
         }
         res.redirect('/admin/announcements?success=1');
-    } catch(e) { res.redirect('/admin/announcements'); }
+    } catch(e) { console.error('Announcement create error:', e.message); res.redirect('/admin/announcements'); }
 });
 
 app.get('/admin/announcements/delete/:id', adminAuth, async (req, res) => {
-    if (dbConnected) { await db.query(`DELETE FROM announcements WHERE id=$1`, { bind: [req.params.id] }); }
-    res.redirect('/admin/announcements');
+    try {
+        if (dbConnected) { await db.query(`DELETE FROM announcements WHERE id=$1`, { bind: [req.params.id] }); }
+        res.redirect('/admin/announcements');
+    } catch(e) { console.error('Announcement delete error:', e.message); res.redirect('/admin/announcements'); }
 });
 
 // ============================================
